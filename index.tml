@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e0e10">
+<meta name="description" content="Tu estudio de composición personal">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SongCraft">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<title>SongCraft</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0e10;--bg2:#18181c;--bg3:#222228;--bg4:#2c2c35;
+  --border:#333340;--border2:#44445a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --accent:#c8a96e;--accent2:#8b6fd4;--accent3:#4ecdc4;
+  --red:#e05c5c;--green:#5ce084;
+  --r:10px;--rl:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden}
+h3{font-family:'DM Serif Display',serif}
+.app{display:grid;grid-template-rows:56px 1fr;height:100dvh;overflow:hidden}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px}
+.logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent);flex:1}
+.logo span{color:var(--text2);font-size:13px;font-family:'Outfit',sans-serif;font-weight:300;margin-left:8px}
+.main{display:grid;grid-template-columns:240px 1fr;overflow:hidden}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-hdr{padding:14px 16px;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase}
+.plist{flex:1;overflow-y:auto;padding:0 8px 4px}
+.pi{padding:10px 12px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;margin-top:2px}
+.pi:hover{background:var(--bg3)}
+.pi.act{background:var(--bg4);border-left:2px solid var(--accent)}
+.pi-ico{font-size:15px;opacity:.7;flex-shrink:0}
+.pi-n{font-size:13px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-m{font-size:11px;color:var(--text3);margin-top:1px}
+.add-btn{margin:6px 8px;padding:9px 12px;border-radius:var(--r);border:1px dashed var(--border2);background:transparent;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;text-align:left;transition:all .15s;width:calc(100% - 16px);display:block}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(200,169,110,.05)}
+.add-btn:disabled{opacity:.3;pointer-events:none}
+.spanel{border-top:1px solid var(--border);display:flex;flex-direction:column;max-height:42%}
+.sb-sec{font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;padding:12px 16px 6px}
+.slist{overflow-y:auto;padding:0 8px}
+.content{display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;padding:0 20px;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;flex-shrink:0}
+.tab{padding:14px 16px 13px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
+.tab:hover{color:var(--text)}
+.tab.act{color:var(--text);border-bottom-color:var(--accent)}
+.ea{flex:1;overflow-y:auto;padding:24px}
+.panel{display:none}
+.panel.act{display:block}
+.stitle{font-family:'DM Serif Display',serif;font-size:28px;background:transparent;border:none;color:var(--text);width:100%;outline:none;border-bottom:1px solid transparent;padding-bottom:4px;transition:border-color .2s;margin-bottom:12px}
+.stitle:focus{border-bottom-color:var(--border2)}
+.stitle::placeholder{color:var(--text3)}
+.mrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.mp{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:12px;display:flex;align-items:center;gap:6px}
+.mp input{background:transparent;border:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;outline:none;width:60px}
+.mp label{color:var(--text3);font-size:11px;letter-spacing:.5px}
+.secs{display:flex;flex-direction:column;gap:14px}
+.sb{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:border-color .2s}
+.sb:focus-within{border-color:var(--border2)}
+.sh{display:flex;align-items:center;padding:9px 14px;gap:8px;border-bottom:1px solid var(--border)}
+.badge{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:12px;font-weight:500}
+.bIntro{background:rgba(94,234,212,.12);color:#5eead4}
+.bVerso{background:rgba(78,205,196,.12);color:#4ecdc4}
+.bPre-coro{background:rgba(96,165,250,.12);color:#60a5fa}
+.bCoro{background:rgba(139,111,212,.12);color:#8b6fd4}
+.bBridge{background:rgba(200,169,110,.12);color:#c8a96e}
+.bOutro{background:rgba(148,163,184,.12);color:#94a3b8}
+.snum{font-size:12px;color:var(--text3);margin-left:2px}
+.sact{margin-left:auto;display:flex;gap:2px}
+.ib{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:4px 7px;border-radius:6px;font-size:13px;transition:all .15s;line-height:1}
+.ib:hover{color:var(--text);background:var(--bg4)}
+.sta{width:100%;background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;font-weight:300;line-height:1.8;padding:14px 16px;resize:none;outline:none;min-height:90px;overflow:hidden}
+.sta::placeholder{color:var(--text3)}
+.asr{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.asrhint{font-size:12px;color:var(--text3)}
+.stb{background:transparent;border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
+.stb:hover{border-color:var(--border2);color:var(--text)}
+.ng{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.nc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px}
+.nc h4{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;font-weight:500;font-family:'Outfit',sans-serif}
+.nta{width:100%;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;line-height:1.7;resize:none;outline:none;min-height:80px}
+.nta::placeholder{color:var(--text3)}
+.rm{display:flex;flex-direction:column;align-items:center;padding:36px 20px;gap:20px}
+.rt{font-family:'DM Mono',monospace;font-size:32px;color:var(--text);letter-spacing:4px}
+.rb{width:76px;height:76px;border-radius:50%;border:3px solid var(--red);background:rgba(224,92,92,.1);color:var(--red);font-size:22px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;position:relative}
+.rb.rec{background:rgba(224,92,92,.25);animation:pulse 1.2s ease-in-out infinite}
+.rb.rec::after{content:'';position:absolute;width:100%;height:100%;border-radius:50%;border:2px solid var(--red);animation:ripple 1.2s ease-out infinite;opacity:0}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes ripple{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.5);opacity:0}}
+.rh{font-size:13px;color:var(--text3);text-align:center}
+.alist{width:100%;max-width:580px;margin:0 auto}
+.ai{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.apb{width:34px;height:34px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.apb:hover{border-color:var(--accent3);color:var(--accent3)}
+.ani{background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:100%}
+.aw{flex:1;height:30px;background:var(--bg4);border-radius:4px;overflow:hidden;display:flex;align-items:center;gap:1px;padding:4px 6px}
+.wbar{background:var(--accent3);border-radius:1px;opacity:.55;flex:1}
+.ic{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.icard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:14px;display:flex;gap:10px;transition:border-color .2s}
+.icard:hover{border-color:var(--border2)}
+.idot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:7px}
+.c0{background:var(--accent)}.c1{background:var(--accent2)}.c2{background:var(--accent3)}.c3{background:#60a5fa}
+.ita{background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;line-height:1.7;resize:none;outline:none;flex:1;min-height:38px;overflow:hidden}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.md{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:26px;width:350px;max-width:92vw}
+.md h3{margin-bottom:18px}
+.md input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;outline:none;margin-bottom:12px}
+.md input:focus{border-color:var(--accent)}
+.mda{display:flex;gap:10px;justify-content:flex-end}
+.btn{padding:8px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.bg{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.bg:hover{color:var(--text)}
+.ba{background:var(--accent);border:1px solid var(--accent);color:#0e0e10;font-weight:500}
+.ba:hover{opacity:.85}
+.ub{display:none;position:fixed;bottom:18px;right:18px;background:var(--bg3);border:1px solid var(--accent);border-radius:var(--rl);padding:12px 16px;z-index:300;font-size:13px;gap:12px;align-items:center}
+.ub.show{display:flex}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.empty{text-align:center;padding:60px 20px;color:var(--text3);margin:auto}
+.empty h3{font-size:16px;margin-bottom:8px;color:var(--text2)}
+.empty p{font-size:13px;line-height:1.6}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@media(max-width:580px){.main{grid-template-columns:1fr}.sidebar{display:none}.ng{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">SongCraft <span id="proj-name"></span></div>
+    <div class="dot" title="Guardado localmente"></div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="sb-hdr">Proyectos</div>
+      <div id="plist" class="plist"></div>
+      <button class="add-btn" onclick="openM('mp')">+ Nuevo proyecto</button>
+      <div class="spanel">
+        <div class="sb-sec">Canciones</div>
+        <div id="slist" class="slist"></div>
+        <button class="add-btn" id="asb" onclick="openM('ms')" disabled>+ Nueva canción</button>
+      </div>
+    </div>
+    <div class="content" id="mc">
+      <div class="empty"><h3>Bienvenido a SongCraft</h3><p>Crea un proyecto para empezar.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="mo" id="mp">
+  <div class="md"><h3>Nuevo proyecto</h3>
+    <input id="ip" placeholder="Álbum / EP / colección...">
+    <div class="mda">
+      <button class="btn bg" onclick="closeM('mp')">Cancelar</button>
+      <button class="btn ba" onclick="createP()">Crear</button>
+    </div>
+  </div>
+</div>
+<div class="mo" id="ms">
+  <div class="md"><h3>Nueva canción</h3>
+    <input id="is" placeholder="Título...">
+    <div class="mda">
+      <button class="btn bg" onclick="closeM('ms')">Cancelar</button>
+      <button class="btn ba" onclick="createS()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<div class="ub" id="ub">
+  <span>🎵 Nueva versión disponible</span>
+  <button class="btn ba" onclick="applyUpd()">Actualizar</button>
+</div>
+
+<script>
+// ── Service Worker inline via Blob ──────────────────────────────────────────
+// El timestamp se actualiza cada vez que se hace push (GitHub Actions lo inyecta)
+const SW_TS = '__SW_TS__';
+const swCode = `
+const CN = 'sc-${SW_TS}';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CN).then(c => c.addAll(['./'])).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks =>
+    Promise.all(ks.filter(k => k !== CN).map(k => caches.delete(k)))
+  ).then(() => self.clients.claim()));
+});
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(caches.match(e.request).then(c => c || fetch(e.request)));
+});
+self.addEventListener('message', e => { if (e.data?.type === 'SKIP') self.skipWaiting(); });
+`;
+let waitingW = null;
+if ('serviceWorker' in navigator) {
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+          waitingW = nw; document.getElementById('ub').classList.add('show');
+        }
+      });
+    });
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+}
+function applyUpd() { waitingW?.postMessage({ type: 'SKIP' }); location.reload(); }
+
+// ── Manifest inline ──────────────────────────────────────────────────────────
+const mblob = new Blob([JSON.stringify({
+  name:'SongCraft', short_name:'SongCraft', start_url:'./', display:'standalone',
+  background_color:'#0e0e10', theme_color:'#0e0e10',
+  icons:[{src:"data:image/svg+xml,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230e0e10'/><rect x='72' y='52' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='100' y='44' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='72' y='52' width='38' height='10' rx='5' fill='%23c8a96e'/><ellipse cx='70' cy='126' rx='14' ry='10' fill='%23c8a96e'/><ellipse cx='98' cy='118' rx='14' ry='10' fill='%23c8a96e'/></svg>`),sizes:'192x192',type:'image/svg+xml'}]
+})],{type:'application/manifest+json'});
+document.head.insertAdjacentHTML('beforeend',`<link rel="manifest" href="${URL.createObjectURL(mblob)}">`);
+
+// ── State & persistence ───────────────────────────────────────────────────────
+const DB = 'songcraft_v1';
+let S = { projects:[], curP:null, curS:null };
+let saveT = null;
+function load() {
+  try { const d=localStorage.getItem(DB); if(d) S=JSON.parse(d); } catch(e){}
+  if (!S.projects) S.projects=[];
+  renderPs();
+  if (S.curP) { const p=byId(S.curP); if(p) { selP(p,false); if(S.curS){ const s=p.songs.find(x=>x.id===S.curS); if(s) selS(s); }}}
+}
+function save() { clearTimeout(saveT); saveT=setTimeout(()=>{try{localStorage.setItem(DB,JSON.stringify(S));}catch(e){}},400); }
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const byId = id => S.projects.find(x=>x.id===id);
+const cP = () => byId(S.curP);
+const cS = () => { const p=cP(); return p?p.songs.find(x=>x.id===S.curS):null; };
+const ar = ta => { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; };
+
+// ── Projects ──────────────────────────────────────────────────────────────────
+function renderPs() {
+  const el=document.getElementById('plist'); el.innerHTML='';
+  S.projects.forEach(p => {
+    const d=document.createElement('div'); d.className='pi'+(p.id===S.curP?' act':'');
+    d.innerHTML=`<span class="pi-ico">📁</span><div><div class="pi-n">${esc(p.name)}</div><div class="pi-m">${p.songs.length} canción${p.songs.length!==1?'es':''}</div></div>`;
+    d.onclick=()=>selP(p); el.appendChild(d);
+  });
+}
+function selP(p, doS=true) {
+  S.curP=p.id; document.getElementById('proj-name').textContent='— '+p.name;
+  document.getElementById('asb').disabled=false;
+  renderPs(); renderSlist(p);
+  if (doS) { S.curS=null; p.songs.length?selS(p.songs[0]):empty('Sin canciones aún','Crea tu primera canción.'); }
+  save();
+}
+function renderSlist(p) {
+  const el=document.getElementById('slist'); el.innerHTML='';
+  (p.songs||[]).forEach(s => {
+    const d=document.createElement('div'); d.className='pi'+(s.id===S.curS?' act':'');
+    d.innerHTML=`<span class="pi-ico">🎵</span><div><div class="pi-n">${esc(s.title||'Sin título')}</div><div class="pi-m">${s.sections?.length||0} sección${(s.sections?.length||0)!==1?'es':''}</div></div>`;
+    d.onclick=()=>selS(s); el.appendChild(d);
+  });
+}
+function createP() {
+  const name=document.getElementById('ip').value.trim(); if(!name) return;
+  const p={id:uid(),name,songs:[]};
+  S.projects.push(p); closeM('mp'); save(); selP(p);
+}
+
+// ── Songs ─────────────────────────────────────────────────────────────────────
+function selS(s) { S.curS=s.id; renderSlist(cP()); renderEditor(s); save(); }
+function createS() {
+  const name=document.getElementById('is').value.trim(); const p=cP(); if(!p) return;
+  const s={id:uid(),title:name||'Sin título',bpm:'',key:'',genre:'',sections:[],chords:'',structure:'',references:'',notes:'',audioClips:[],ideas:[]};
+  p.songs.push(s); closeM('ms'); save(); renderSlist(p); selS(s);
+}
+
+// ── Editor ────────────────────────────────────────────────────────────────────
+function renderEditor(song) {
+  const mc=document.getElementById('mc');
+  mc.innerHTML=`
+    <div class="tabs">
+      <div class="tab act" data-p="lyrics">✍️ Letra</div>
+      <div class="tab" data-p="notes">🎵 Notas</div>
+      <div class="tab" data-p="audio">🎙️ Audio</div>
+      <div class="tab" data-p="ideas">💡 Ideas</div>
+    </div>
+    <div class="ea">
+      <input class="stitle" data-f="title" placeholder="Título..." value="${esc(song.title)}">
+      <div class="mrow">
+        <div class="mp"><label>BPM</label><input type="number" data-f="bpm" placeholder="120" min="40" max="300" value="${esc(song.bpm)}"></div>
+        <div class="mp"><label>TONO</label><input type="text" data-f="key" placeholder="Am" value="${esc(song.key)}"></div>
+        <div class="mp"><label>GÉNERO</label><input type="text" data-f="genre" placeholder="Pop" value="${esc(song.genre)}"></div>
+      </div>
+      <div id="panel-lyrics" class="panel act">
+        <div id="secs" class="secs"></div>
+        <div class="asr" style="margin-top:14px">
+          <span class="asrhint">Agregar:</span>
+          <button class="stb" onclick="addSec('Intro')">Intro</button>
+          <button class="stb" onclick="addSec('Verso')">Verso</button>
+          <button class="stb" onclick="addSec('Pre-coro')">Pre-coro</button>
+          <button class="stb" onclick="addSec('Coro')">Coro</button>
+          <button class="stb" onclick="addSec('Bridge')">Bridge</button>
+          <button class="stb" onclick="addSec('Outro')">Outro</button>
+        </div>
+      </div>
+      <div id="panel-notes" class="panel">
+        <div class="ng">
+          <div class="nc"><h4>Acordes</h4><textarea class="nta" data-f="chords" placeholder="Am - F - C - G" rows="5">${esc(song.chords)}</textarea></div>
+          <div class="nc"><h4>Estructura</h4><textarea class="nta" data-f="structure" placeholder="Intro x8&#10;Verso x16&#10;Coro x8" rows="5">${esc(song.structure)}</textarea></div>
+          <div class="nc"><h4>Referencias</h4><textarea class="nta" data-f="references" placeholder="Artistas, canciones, mood..." rows="5">${esc(song.references)}</textarea></div>
+          <div class="nc"><h4>Notas</h4><textarea class="nta" data-f="notes" placeholder="Ideas sueltas..." rows="5">${esc(song.notes)}</textarea></div>
+        </div>
+      </div>
+      <div id="panel-audio" class="panel">
+        <div class="rm">
+          <div class="rt" id="rt">00:00</div>
+          <button class="rb" id="rb" onclick="toggleRec()"><span id="ri">⏺</span></button>
+          <div class="rh" id="rh">Toca para grabar una idea</div>
+        </div>
+        <div class="alist" id="alist"></div>
+      </div>
+      <div id="panel-ideas" class="panel">
+        <div id="ic" class="ic"></div>
+        <button class="add-btn" style="margin:0;width:100%" onclick="addIdea()">+ Agregar idea</button>
+      </div>
+    </div>`;
+
+  mc.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    mc.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));
+    mc.querySelectorAll('.panel').forEach(x=>x.classList.remove('act'));
+    t.classList.add('act');
+    document.getElementById('panel-'+t.dataset.p).classList.add('act');
+  }));
+  mc.querySelectorAll('[data-f]').forEach(el => el.addEventListener('input', () => {
+    song[el.dataset.f]=el.value;
+    if (el.dataset.f==='title') renderSlist(cP());
+    save();
+  }));
+  (song.sections||[]).forEach(s=>appSec(s,song));
+  renderAlist(song);
+  (song.ideas||[]).forEach(i=>appIdea(i,song));
+}
+
+// ── Sections ──────────────────────────────────────────────────────────────────
+function addSec(type) {
+  const song=cS(); if(!song) return;
+  const sec={id:uid(),type,text:''};
+  song.sections.push(sec); appSec(sec,song); save(); renderSlist(cP());
+}
+function appSec(sec,song) {
+  const ct=document.getElementById('secs'); if(!ct) return;
+  const same=song.sections.filter(s=>s.type===sec.type);
+  const num=same.length>1?' '+(same.indexOf(sec)+1):'';
+  const div=document.createElement('div'); div.className='sb'; div.dataset.id=sec.id;
+  div.innerHTML=`
+    <div class="sh">
+      <span class="badge b${sec.type.replace('-','')}">${esc(sec.type)}</span>
+      <span class="snum">${esc(num)}</span>
+      <div class="sact">
+        <button class="ib" onclick="movSec('${sec.id}','up')">↑</button>
+        <button class="ib" onclick="movSec('${sec.id}','down')">↓</button>
+        <button class="ib" onclick="delSec('${sec.id}')">✕</button>
+      </div>
+    </div>
+    <textarea class="sta" placeholder="Escribe la letra aquí..." rows="3"></textarea>`;
+  const ta=div.querySelector('textarea');
+  ta.value=sec.text;
+  ta.addEventListener('input',()=>{sec.text=ta.value;ar(ta);save();});
+  ct.appendChild(div); ar(ta); ta.focus();
+}
+function movSec(id,dir) {
+  const song=cS(); if(!song) return;
+  const i=song.sections.findIndex(s=>s.id===id);
+  const ni=dir==='up'?i-1:i+1;
+  if(ni<0||ni>=song.sections.length) return;
+  [song.sections[i],song.sections[ni]]=[song.sections[ni],song.sections[i]];
+  save(); renderEditor(song);
+}
+function delSec(id) {
+  const song=cS(); if(!song) return;
+  song.sections=song.sections.filter(s=>s.id!==id);
+  save(); renderEditor(song);
+}
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
+let mr=null,chunks=[],ri_int=null,rsec=0;
+async function toggleRec() {
+  if (mr?.state==='recording'){stopRec();return;}
+  try {
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mr=new MediaRecorder(stream); chunks=[];
+    mr.ondataavailable=e=>chunks.push(e.data);
+    mr.onstop=onStop; mr.start(); rsec=0;
+    document.getElementById('rb').classList.add('rec');
+    document.getElementById('ri').textContent='⏹';
+    document.getElementById('rh').textContent='Grabando... toca para detener';
+    ri_int=setInterval(()=>{
+      rsec++; const m=String(Math.floor(rsec/60)).padStart(2,'0'); const s=String(rsec%60).padStart(2,'0');
+      document.getElementById('rt').textContent=m+':'+s;
+    },1000);
+  } catch(e){ const h=document.getElementById('rh'); if(h) h.textContent='Sin permiso de micrófono'; }
+}
+function stopRec() {
+  clearInterval(ri_int); mr.stop(); mr.stream.getTracks().forEach(t=>t.stop());
+  document.getElementById('rb').classList.remove('rec');
+  document.getElementById('ri').textContent='⏺';
+  document.getElementById('rh').textContent='Toca para grabar una idea';
+}
+function onStop() {
+  const blob=new Blob(chunks,{type:'audio/webm'}); const url=URL.createObjectURL(blob);
+  const song=cS(); if(!song) return;
+  if(!song.audioClips) song.audioClips=[];
+  const clip={id:uid(),name:'Idea '+(song.audioClips.length+1),url,duration:rsec,bars:rBars()};
+  song.audioClips.push(clip); appAudio(clip); save();
+}
+const rBars=()=>Array.from({length:36},()=>Math.floor(10+Math.random()*80));
+function renderAlist(song) {
+  const el=document.getElementById('alist'); if(!el) return;
+  el.innerHTML=''; (song.audioClips||[]).forEach(c=>appAudio(c));
+}
+function appAudio(clip) {
+  const el=document.getElementById('alist'); if(!el) return;
+  const bars=(clip.bars||rBars()).map(h=>`<div class="wbar" style="height:${h}%"></div>`).join('');
+  const dur=typeof clip.duration==='number'
+    ?String(Math.floor(clip.duration/60)).padStart(2,'0')+':'+String(clip.duration%60).padStart(2,'0'):'--:--';
+  const div=document.createElement('div'); div.className='ai'; div.dataset.id=clip.id;
+  div.innerHTML=`
+    <button class="apb" onclick="playC('${clip.id}')">▶</button>
+    <div style="flex:1;min-width:0">
+      <input class="ani" value="${esc(clip.name)}" placeholder="Nombre...">
+      <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px">${dur}</div>
+    </div>
+    <div class="aw">${bars}</div>
+    <button class="ib" onclick="delC('${clip.id}')">✕</button>`;
+  div.querySelector('input').addEventListener('change',e=>{clip.name=e.target.value;save();});
+  el.appendChild(div);
+}
+function playC(id) {
+  const song=cS(); if(!song) return;
+  const c=song.audioClips.find(x=>x.id===id); if(c?.url) new Audio(c.url).play();
+}
+function delC(id) {
+  const song=cS(); if(!song) return;
+  song.audioClips=song.audioClips.filter(c=>c.id!==id); renderAlist(song); save();
+}
+
+// ── Ideas ─────────────────────────────────────────────────────────────────────
+function addIdea() {
+  const song=cS(); if(!song) return;
+  if(!song.ideas) song.ideas=[];
+  const idea={id:uid(),text:'',color:song.ideas.length%4};
+  song.ideas.push(idea); appIdea(idea,song); save();
+}
+function appIdea(idea,song) {
+  const ct=document.getElementById('ic'); if(!ct) return;
+  const div=document.createElement('div'); div.className='icard'; div.dataset.id=idea.id;
+  div.innerHTML=`<div class="idot c${idea.color||0}"></div><textarea class="ita" placeholder="Concepto, rima, imagen..." rows="2"></textarea><button class="ib" onclick="delI('${idea.id}')">✕</button>`;
+  const ta=div.querySelector('textarea');
+  ta.value=idea.text;
+  ta.addEventListener('input',()=>{idea.text=ta.value;ar(ta);save();});
+  ar(ta); ct.appendChild(div); ta.focus();
+}
+function delI(id) {
+  const song=cS(); if(!song) return;
+  song.ideas=song.ideas.filter(i=>i.id!==id);
+  document.getElementById('ic')?.querySelector(`[data-id="${id}"]`)?.remove(); save();
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+function openM(id) {
+  document.getElementById(id).classList.add('open');
+  setTimeout(()=>{const i=document.querySelector(`#${id} input`);if(i){i.value='';i.focus();}},60);
+}
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+function empty(t,m) { document.getElementById('mc').innerHTML=`<div class="empty"><h3>${esc(t)}</h3><p>${esc(m)}</p></div>`; }
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.mo').forEach(o=>o.classList.remove('open'));
+  if(e.key==='Enter'){
+    if(document.getElementById('mp').classList.contains('open')) createP();
+    else if(document.getElementById('ms').classList.contains('open')) createS();
+  }
+});
+load();
+</script>
+</body>
+</html>
