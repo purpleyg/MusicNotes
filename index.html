@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SongCraft">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAC0UlEQVR42u3c26lCMRRF0VRwsFL7shO7UvxX0A/DSeYQZgM7a8DlvsZY6HMcl4fWaPgYtyAxeAFh9Epj8KBKQvCASkLwYEpC8EDKQvAoyiLwGEoi8ADKQnB0ZRE4trIIHFlZBI6rLAJHVRqBgyoLwDGVReCIyiJwPKUROJyyABxNaQQOpiwAx1IagUMpC8CRlEbgQMoCcBylETiMAJCKABxFaQQOIgAkAKQYAMdQGoFDCAAJAAkACQAJAAkACQBpTwCO8L777bpE3goAAAQAAAIAAAEAgAAAQAAAIAAAEAAACAAABAAAAgAAAQCAAFgenpsBAIAAAEAAACAAABAAAAgAAAQAAALAD8IEAAACAAABAIAAAEAAAACAIwAAgAAAQAAAIAAAEAAAAAAAAAAAAID8NigAAgAAAQCAAABAAAAgAAAQAAAIAAAEAAACAAABAIAAAEAAACAAABAAAAgAAAQAAAIAAAEAgAAAQAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwMwAAEAAACAAABAAAAgAAAQCAAABAAAAgAAAQAAAIgKkj/WW0AACw5ei/HTAAACSG/2nIAACQGv4/v5wSANsOHwAA8uMHAID0+AEAID1+AABIjx8AAAAwYgCq4wcAAACMGADf9REAAAgAAAQAAAIAAAEAgAAAQAD41WcBAIAAAEAA+NNHAbAMAm8EAAACoIjA2wCQROA9AMhC8AYAZBG4PQDpf40oADIY3PQEAF4fh5iHwe0AkACQAJAAkACQAJAAkACQJgKAQOnxAyAAHEQASFEAECg9fgAEgMOoDAACpccPgPIAIFB6/AAoDwACpccPgPIAIFB6/AAoDwACpccPgfLjh0D58QOgPAAIlB4/BMqPHwLlxw+B8uOHQPnxg6D88CGQ8UMg4wdBhg+CDB8EGT4IMnwYZPRA6NSDfwIxNPdpBy5LmgAAAABJRU5ErkJggg==">
 <title>SongCraft</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
@@ -37,13 +38,24 @@ html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-
 
 #topbar {
   flex-shrink: 0;
-  height: 52px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   padding: 0 8px 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
   position: relative;
+  min-height: calc(52px + env(safe-area-inset-top, 0px));
+}
+/* Altura de la fila de botones dentro del topbar */
+#topbar > *, #topbar .tb-logo, #topbar .tb-back {
+  height: 52px;
+  display: flex;
+  align-items: center;
+}
+#topbar .tb-title {
+  bottom: 0;
+  height: 52px;
 }
 
 #mid {
@@ -55,10 +67,18 @@ html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-
 
 #tabbar {
   flex-shrink: 0;
-  height: 60px;
   background: var(--bg2);
   border-top: 1px solid var(--border);
   display: flex;
+  flex-direction: column;
+}
+#tabbar-inner {
+  display: flex;
+  height: 60px;
+}
+#tabbar-safe {
+  height: env(safe-area-inset-bottom, 0px);
+  background: var(--bg2);
 }
 
 /* ─── PANTALLAS ───────────────────────────────────────────────────────────────
@@ -356,15 +376,18 @@ html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-
 
   <!-- Fila 3: tabbar -->
   <div id="tabbar">
-    <button class="tbb act" id="tbb-projects" onclick="go('projects')">
-      <span class="tbb-ico">📁</span><span class="tbb-lbl">Proyectos</span>
-    </button>
-    <button class="tbb" id="tbb-songs" onclick="go('songs')">
-      <span class="tbb-ico">🎵</span><span class="tbb-lbl">Canciones</span>
-    </button>
-    <button class="tbb" id="tbb-editor" onclick="go('editor')">
-      <span class="tbb-ico">✍️</span><span class="tbb-lbl">Editor</span>
-    </button>
+    <div id="tabbar-inner">
+      <button class="tbb act" id="tbb-projects" onclick="go('projects')">
+        <span class="tbb-ico">📁</span><span class="tbb-lbl">Proyectos</span>
+      </button>
+      <button class="tbb" id="tbb-songs" onclick="go('songs')">
+        <span class="tbb-ico">🎵</span><span class="tbb-lbl">Canciones</span>
+      </button>
+      <button class="tbb" id="tbb-editor" onclick="go('editor')">
+        <span class="tbb-ico">✍️</span><span class="tbb-lbl">Editor</span>
+      </button>
+    </div>
+    <div id="tabbar-safe"></div>
   </div>
 </div>
 
@@ -386,13 +409,15 @@ html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-
 <script>
 // ── Altura real por JS (evita bugs iOS Safari con 100vh / 100dvh) ────────────
 function setHeight() {
-  const sh = document.getElementById('shell');
-  const tb = document.getElementById('topbar');
+  const sh  = document.getElementById('shell');
+  const tb  = document.getElementById('topbar');
   const bar = document.getElementById('tabbar');
   const mid = document.getElementById('mid');
-  const h = window.innerHeight;
-  sh.style.height = h + 'px';
-  mid.style.height = (h - tb.offsetHeight - bar.offsetHeight) + 'px';
+  const h   = window.innerHeight;
+  sh.style.height  = h + 'px';
+  // offsetHeight ya incluye safe-area porque los elementos la miden correctamente
+  const midH = h - tb.offsetHeight - bar.offsetHeight;
+  mid.style.height = Math.max(midH, 0) + 'px';
 }
 setHeight();
 window.addEventListener('resize', setHeight);
@@ -420,7 +445,7 @@ function applyUpd() { waitW?.postMessage({type:'SKIP'}); location.reload(); }
 
 // ── Manifest ──────────────────────────────────────────────────────────────────
 (()=>{
-  const mb = new Blob([JSON.stringify({name:'SongCraft',short_name:'SongCraft',start_url:'./',display:'standalone',background_color:'#0e0e10',theme_color:'#0e0e10',icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230e0e10'/><rect x='72' y='52' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='100' y='44' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='72' y='52' width='38' height='10' rx='5' fill='%23c8a96e'/><ellipse cx='70' cy='126' rx='14' ry='10' fill='%23c8a96e'/><ellipse cx='98' cy='118' rx='14' ry='10' fill='%23c8a96e'/></svg>"),sizes:'192x192',type:'image/svg+xml'}]})], {type:'application/manifest+json'});
+  const mb = new Blob([JSON.stringify({name:'SongCraft',short_name:'SongCraft',start_url:'./',display:'standalone',background_color:'#0e0e10',theme_color:'#0e0e10',icons:[{src:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAC0UlEQVR42u3c26lCMRRF0VRwsFL7shO7UvxX0A/DSeYQZgM7a8DlvsZY6HMcl4fWaPgYtyAxeAFh9Epj8KBKQvCASkLwYEpC8EDKQvAoyiLwGEoi8ADKQnB0ZRE4trIIHFlZBI6rLAJHVRqBgyoLwDGVReCIyiJwPKUROJyyABxNaQQOpiwAx1IagUMpC8CRlEbgQMoCcBylETiMAJCKABxFaQQOIgAkAKQYAMdQGoFDCAAJAAkACQAJAAkACQBpTwCO8L777bpE3goAAAQAAAIAAAEAgAAAQAAAIAAAEAAACAAABAAAAgAAAQCAAFgenpsBAIAAAEAAACAAABAAAAgAAAQAAALAD8IEAAACAAABAIAAAEAAAACAIwAAgAAAQAAAIAAAEAAAAAAAAAAAAID8NigAAgAAAQCAAABAAAAgAAAQAAAIAAAEAAACAAABAIAAAEAAACAAABAAAAgAAAQAAAIAAAEAgAAAQAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwMwAAEAAACAAABAAAAgAAAQCAAABAAAAgAAAQAAAIgKkj/WW0AACw5ei/HTAAACSG/2nIAACQGv4/v5wSANsOHwAA8uMHAID0+AEAID1+AABIjx8AAAAwYgCq4wcAAACMGADf9REAAAgAAAQAAAIAAAEAgAAAQAD41WcBAIAAAEAA+NNHAbAMAm8EAAACoIjA2wCQROA9AMhC8AYAZBG4PQDpf40oADIY3PQEAF4fh5iHwe0AkACQAJAAkACQAJAAkACQJgKAQOnxAyAAHEQASFEAECg9fgAEgMOoDAACpccPgPIAIFB6/AAoDwACpccPgPIAIFB6/AAoDwACpccPgfLjh0D58QOgPAAIlB4/BMqPHwLlxw+B8uOHQPnxg6D88CGQ8UMg4wdBhg+CDB8EGT4IMnwYZPRA6NSDfwIxNPdpBy5LmgAAAABJRU5ErkJggg==",sizes:"192x192",type:"image/png",purpose:"any maskable"},{src:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAALMElEQVR42u3X0Y3CQBAFQUdgESl5kQlZgQiBD/DudI1UCazRvb7jcNvfed5eAP/mr69zRhxAPDhn6AGEgTP2AIgCZ/ABEATO6AMgBpzRB0AMOKMPgBhwRh8AMeAMPwBCwBl+AISAM/wACAFn+AEQAobfjx4AIWD4AUAIGH4AhIAz/AAIAWf8ARABzvADIASc8QdABDjDD4AQcMYfABHgDD8AQsAZfwBEgDP+AIgAw++HBYAQMP4AIAKMPwCIAOMPACLA+AOACDD+ACACjD8AiADDDwBCwPgDgAgw/gAgAgQAAAgA4w8AIsD4A4AIMP4AkI0AHxkAYhHg4wJALAJ8VACIRYCPCQDBCPAhASAWAD4iAMQiwMcDgFgE+GgAEIwAHwwAYgHgYwFALAJ8JAAIRoAPBACxAPBxACAWAT4KAAQjwAcBgFgA+BgAEIsAHwEAghHgAwBALAA8PgAEI8DDA0AsADw6AAQjwIMDQCwAPDYABCPAQwNALAA8MgAEI8ADA0AsADwuAAQjwMMCQCwAPCoABCPAgwJALAA8JgAEI8BDAkAsADwiAAQjwAMCgAAAAKYHgMcDgGAEeDgAEAAAwPQA8GgAEIwADwYAAgAAmB4AHgsAghHgoQBAAAAA0wPAIwFAMAI8EAAIAABAAAAA4wLA4wBAMAI8DAAIAABAAAAAAgAA2D8APAoABCPAgwCAAAAABAAAIAAAAAEAAGwYAB4DAIIR4CEAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAADwTQB4BKZ7Pu5szG8YBAAIAAEACAAQAAIAEAAgAAQAIABAAAgAQAAgABAAgABAACAAQAB4CAQAAgAEAAgABAAIABAACAAQACAAEAAgAEAAIABAAIAAQACAAAABgAAAAQACAAEAAgAEAAIABAAIAAQACAAQAAgAEAAgAAQAIABAAAgAQACAABAAgAAAASAAAAGAAEAAAAIAAYAAAAHgERAACAAQACAAEAAgAEAAIABAAIAAQACAAAABgAAAAQACAAEAAgAEAAIABAAIAAQACAAQAAgAEAAgABAAIABAACAAQACAABAAgAAAOiHl7UEAAAIAEACAAAAEACAAAAEACABAAAACABAAgAAAAeAhAAEAAgBAAIAAABAAIAAAASAAQAAAAkAAgAAABIAAAAEACAABAAIAEAACAAQAIAAEAAgAQAAIABAAgAAQACAAAAEACABAAAACANYbLgQACAAQAAgAEAAgABAAIABAACAAQACAAEAAgAAAASAAAAEAAkAAAAIABIAAAAQACAABAAgAEAACABAACAAEACAAEAAIABAAIAAQACAAQAAgAEAAgABAAIAAAAGAAAABAAIAAQACAAQAAgAEAAgABAAIABAACAAQACAAEAAgAEAAIABAAIAAEAB+wyAAQAAIAEAAgAAQAIAAAAEgAAABAAJAAAACAAGAAAAEAAIAAQACAAQAAgAEAAgABAAIABAACAAQACAAEAAgAEAAIABAAIAAQACAAAABgAAAAQAIKQEAAgAQAAIABAAgAAQACABAAHh7EACAAAAEACAAAAEACABAAAACABAAgAAABAAgAEAAeARAAIAAABAAIAAABAAIAEAACAAQAIAAEAAgAAABIABAAAACQACAAAAEgAAAAQAIAAEAAgAQAAIABAAgAAQACABAAAACABAAgAAABAAgAAABAAgAQAAAAgAQAIAAAAQACAAAAQACAEAAgAAABIAAAAEACAABAAIAEAACAAQAIAAEAAgAQAAIABAAgAAQACAAAAEgAEAAAAJAAIAAAAQAIAAAAQAIAEAAAAIAEACAAAAEACAAAAEACABAAIAAABAAIAAABAAIAEAACAAQAIAAEAAgAAABIABAAAACQACAAAAEgAAAAQAIAAEAAgAQAAIABAAgAAQACABAAAACABAAgAAABAAgAAABAAgAQAAAAgAQAIAAAAQACAAAAQACAEAAgAAABIAAAAEACAABAAIAEAACAAQAIAAEAAgAQAAIABAAgAAQACAAAAEgAEAAAAJAAIAAAASAtwcBAAgAQAAAAgAQAIAAAAQAIAAAAQAIAEAAAAIABACAAAABACAAQAAACAAQAIAAEAAgAAABIABAAAACQACAAAAEgAAAAQAIAAEAAgAQAAIABAAgAAQACABAAHh7EACAAAAEACAAAAEACABAAAACABAAgAAABAAgAEAAeARAAIAAABAAIAAABAAIAEAACAAQAIAAEAAgAAABIABAAAACQACAAAAEgAAAAQAIAAEAAgAQAAIABAAgAAQACABAAAACABAAgAAABAAgAGD3IRUAAgAEAPgveYlxFAAgAIALB/GqwRQAIADA4G9EAAACACKj/4sxFQAgAMDoB2NAAIAAAKMfDAEBAAIADH8wBAQACAAw/MEYEAAgAMDwByNAAIAAAMMfDAEBAAIAjD8CAAQAGH4EAAgAMP4IABAAYPgRACAAwPgjAEAAgPFHAIAAAOOPAAABAMYfv3MQAGD8BQAgADD+CABAAGD8EQCAAMD4IwAAAYAAQAAAAgDjjwAAAeAhMP4IABAAYPwRACAAQAAgAEAAgPFHAIAAAAGAAAABAMYfAQACAAQAAgAEABh/BAAIABAACAAQACAAjDogADD+CABAACAAEACAAEAAIAIAAYAAQAAAAgABgAAABAACAAEACACMPwIABIBHQAAgAEAAgABAAIAAAAGAAAABAAIAAQACAAQAAgAEAIgABAAIABAACAAQACAAEAAgAEAACABAAIAAMP6AAEAEGEkBAAgABAACABAACACMPyAAEAEIAEAAIAAQAIAAQABg/AEBgAhAAAACAAGA8QcBACIAAQACAEQAxh8EAAgAjD8IABABCAAQACACMP4gAEAAGH9AAIAIMP6AAAARYPwBAQAiwPgDAgBEgPEHBACIAOMPCAAQAcYfEAAgAow/IADAMBt/QAAgAjD8gABACGD8AQGACMDwgwAAIYDxBwEAQsDwAwIARIDhBwQAiAHDDwgAEAKGHxAAIASMPiAAQAwYfUAAgCAw+sDlAfA5DwEzgsA3AQQADI4C7wwIAABAAAAAAgAAEAAAgAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAgBUCQAQAQHD8BQAACAAAQAAAAAIAABAAAMDGASACACA4/gIAAAQAACAAAAABAADMCQARAADB8RcAACAAAAABAACMDQARAADB8RcAACAAAIBKAIgAAAiOvwAAAAEAAFQCQAQAQHD8BQAACAAAoBIAIgAAguMvAABAAAAAlQAQAQAQHH8BAADRABABABAcfwEAANEAEAEAEBx/AQAA0QAQAQAQHH8BAADRABABABAcfwEAANEAEAEAEBx/AQAA0QAQAQAQHH8BAADRABABABAcfwEAANEAEAEAEBx/EQAA0fEXAAAQDQARAADB8RcBABAdfwEAANEAEAEAEBx/EQAA0fEXAAAQDQARAADB8RcBABAdfxEAANHxFwAAEA0AEQAAwfEXAQAQHX8RAADR8RcBABAdfxEAANHxFwEAEB1/EQCA8Q+fHwAAAkAEAIDxFwEAYPyFAAAYfhEAAMZfBACA8RcBAGD8RQAAGH8RAADGXwQAgPEXAgBg+EUAABh/EQAAxl8IAGD4nQgAwPg7IQCA4XciAADj74QAAIbfiQAAjL8TAgAYficEADD8TggAYPidEADA8DshAIDhd0IAAMPvhACA4XdOCAAYfufEAIDRd04MABh958QAgNF3TgwAGH3nBAGAwXdOFAAYe+eEAYChX+TeRo2oUjNmFxwAAAAASUVORK5CYII=",sizes:"512x512",type:"image/png",purpose:"any maskable"}]})], {type:'application/manifest+json'});
   document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(mb)}">`);
 })();
 
