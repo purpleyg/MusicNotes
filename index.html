@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e0e10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,416 +17,598 @@
   --border:#333340;--border2:#44445a;
   --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
   --accent:#c8a96e;--accent2:#8b6fd4;--accent3:#4ecdc4;
-  --red:#e05c5c;--green:#5ce084;
-  --tabh:60px;--topbh:52px;
+  --red:#e05c5c;
 }
-html{height:100%;height:-webkit-fill-available}
-body{
-  height:100vh;height:100dvh;
-  overflow:hidden;
-  background:var(--bg);color:var(--text);
-  font-family:'Outfit',sans-serif;font-weight:300;
-  display:flex;flex-direction:column;
+
+/* ─── SHELL ───────────────────────────────────────────────────────────────────
+   Tres elementos en columna con altura total de la ventana.
+   Topbar y tabbar son tamaño fijo. El wrapper del medio es el resto exacto.
+   NO usamos 100dvh en body — usamos JS para setear la altura real.
+────────────────────────────────────────────────────────────────────────────── */
+html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; font-weight:300; overflow:hidden; }
+
+#shell {
+  display: flex;
+  flex-direction: column;
+  /* La altura se setea por JS para evitar bugs de iOS */
+  width: 100%;
+  overflow: hidden;
 }
-.topbar{
-  height:var(--topbh);min-height:var(--topbh);
-  background:var(--bg);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 8px 0 16px;
-  flex-shrink:0;position:relative;z-index:10;
+
+#topbar {
+  flex-shrink: 0;
+  height: 52px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 16px;
+  position: relative;
 }
-.tb-logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
-.tb-title{
-  position:absolute;left:50%;transform:translateX(-50%);
-  font-size:15px;font-weight:400;
-  max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+
+#mid {
+  flex-shrink: 0;
+  /* La altura se calcula por JS: ventana - topbar - tabbar */
+  overflow: hidden;
+  position: relative;
 }
-.tb-back{
-  background:transparent;border:none;color:var(--accent);
-  font-family:'Outfit',sans-serif;font-size:15px;
-  cursor:pointer;padding:8px 4px;
-  min-width:44px;min-height:44px;
-  display:flex;align-items:center;gap:2px;
+
+#tabbar {
+  flex-shrink: 0;
+  height: 60px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
 }
-.tb-right{margin-left:auto;min-width:44px}
-.screens{flex:1;overflow:hidden;position:relative;min-height:0}
-.screen{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;overflow:hidden;
-  transition:transform .28s cubic-bezier(.4,0,.2,1);
+
+/* ─── PANTALLAS ───────────────────────────────────────────────────────────────
+   Cada pantalla ocupa exactamente el #mid.
+   Solo una tiene display:flex, las demás display:none.
+   Sin position:absolute, sin trucos de transform.
+────────────────────────────────────────────────────────────────────────────── */
+.screen {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;   /* hereda del #mid seteado por JS */
+  overflow: hidden;
 }
-.screen.gone-right{transform:translateX(100%)}
-.screen.gone-left{transform:translateX(-25%)}
-.screen-body{
-  flex:1;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
-  padding-bottom:16px;
+.screen.show { display: flex; }
+
+/* El área scrollable dentro de cada pantalla */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
-.screen-body::-webkit-scrollbar{display:none}
-.tabbar{
-  height:var(--tabh);min-height:var(--tabh);
-  background:var(--bg2);border-top:1px solid var(--border);
-  display:flex;flex-shrink:0;
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ─── TOPBAR ─────────────────────────────────────────────────────────────────*/
+.tb-logo { font-family:'DM Serif Display',serif; font-size:18px; color:var(--accent); }
+.tb-title {
+  position: absolute; left:50%; transform:translateX(-50%);
+  font-size: 15px; font-weight: 400;
+  max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.tbb{
-  flex:1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;
-  background:transparent;border:none;
-  color:var(--text3);cursor:pointer;padding:8px 4px;
-  transition:color .15s;
+.tb-back {
+  background: transparent; border: none; color: var(--accent);
+  font-family: 'Outfit',sans-serif; font-size: 15px; cursor: pointer;
+  padding: 0 8px; min-width: 44px; min-height: 44px;
+  display: flex; align-items: center;
 }
-.tbb.act{color:var(--accent)}
-.tbb-ico{font-size:22px;line-height:1}
-.tbb-lbl{font-size:10px;letter-spacing:.2px;font-family:'Outfit',sans-serif}
-.list-wrap{padding:12px 12px 0}
-.pcard{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:16px;padding:16px;margin-bottom:10px;
-  display:flex;align-items:center;gap:14px;
-  cursor:pointer;min-height:68px;transition:background .15s;
+.tb-spacer { margin-left: auto; min-width: 44px; }
+
+/* ─── TABBAR ─────────────────────────────────────────────────────────────────*/
+.tbb {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  background: transparent; border: none;
+  color: var(--text3); cursor: pointer;
+  font-family: 'Outfit',sans-serif;
+  transition: color .15s;
 }
-.pcard:active{background:var(--bg3)}
-.pcard.sel{border-color:var(--accent)}
-.pcard-icon{font-size:26px;flex-shrink:0}
-.pcard-info{flex:1;min-width:0}
-.pcard-name{font-size:15px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pcard-meta{font-size:12px;color:var(--text3);margin-top:3px}
-.pcard-arr{color:var(--text3);font-size:20px;flex-shrink:0}
-.fab{
-  position:absolute;bottom:16px;right:16px;
-  width:56px;height:56px;border-radius:28px;
-  background:var(--accent);border:none;color:#0e0e10;
-  font-size:28px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;z-index:5;transition:transform .15s,opacity .15s;
+.tbb.act { color: var(--accent); }
+.tbb-ico { font-size: 22px; line-height: 1; }
+.tbb-lbl { font-size: 10px; }
+
+/* ─── FAB ────────────────────────────────────────────────────────────────────*/
+.fab-wrap { position: relative; }
+.fab {
+  position: absolute; bottom: 16px; right: 16px;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent); border: none; color: #0e0e10;
+  font-size: 30px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s, opacity .15s;
+  /* pointer events solo cuando visible */
 }
-.fab:active{transform:scale(.93);opacity:.85}
-.scard{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:16px;padding:14px 16px;margin-bottom:8px;
-  display:flex;align-items:center;gap:12px;
-  cursor:pointer;min-height:60px;transition:background .15s;
+.fab:active { transform: scale(.92); opacity: .85; }
+
+/* ─── LISTAS ─────────────────────────────────────────────────────────────────*/
+.list { padding: 12px 12px 80px; }
+
+.pcard, .scard {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 16px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; padding: 14px 16px; min-height: 64px;
+  transition: background .12s;
 }
-.scard:active{background:var(--bg3)}
-.scard.sel{border-color:var(--accent)}
-.scard-ico{font-size:22px;flex-shrink:0;opacity:.65}
-.scard-info{flex:1;min-width:0}
-.scard-name{font-size:14px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.scard-meta{font-size:11px;color:var(--text3);margin-top:3px}
-.etabs{
-  display:flex;background:var(--bg);
-  border-bottom:1px solid var(--border);
-  overflow-x:auto;flex-shrink:0;
+.pcard:active, .scard:active { background: var(--bg3); }
+.pcard.sel, .scard.sel { border-color: var(--accent); }
+.c-ico { font-size: 24px; flex-shrink: 0; opacity: .8; }
+.c-info { flex: 1; min-width: 0; }
+.c-name { font-size: 15px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-meta { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.c-arr { color: var(--text3); font-size: 22px; flex-shrink: 0; }
+
+/* ─── EDITOR ─────────────────────────────────────────────────────────────────*/
+.etabs {
+  flex-shrink: 0;
+  display: flex; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
 }
-.etabs::-webkit-scrollbar{display:none}
-.etab{
-  flex:1;min-width:72px;padding:13px 6px 12px;
-  font-size:12px;color:var(--text2);
-  cursor:pointer;border:none;background:transparent;
-  border-bottom:2px solid transparent;
-  white-space:nowrap;text-align:center;
-  transition:all .15s;font-family:'Outfit',sans-serif;
+.etabs::-webkit-scrollbar { display: none; }
+.etab {
+  flex: 1; min-width: 72px; padding: 13px 4px 12px;
+  font-size: 12px; color: var(--text2);
+  border: none; background: transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer; white-space: nowrap; text-align: center;
+  font-family: 'Outfit',sans-serif; transition: all .15s;
 }
-.etab.act{color:var(--text);border-bottom-color:var(--accent)}
-.epanel{display:none}
-.epanel.act{display:block}
-.s-hdr{padding:16px 16px 12px}
-.s-title{
-  font-family:'DM Serif Display',serif;font-size:26px;
-  background:transparent;border:none;color:var(--text);
-  width:100%;outline:none;
-  border-bottom:1px solid var(--border);
-  padding-bottom:8px;margin-bottom:14px;
+.etab.act { color: var(--text); border-bottom-color: var(--accent); }
+.epanel { display: none; }
+.epanel.act { display: block; }
+
+/* ─── SONG HEADER ────────────────────────────────────────────────────────────*/
+.s-hdr { padding: 16px 16px 12px; }
+.s-title {
+  font-family: 'DM Serif Display',serif; font-size: 26px;
+  background: transparent; border: none; color: var(--text);
+  width: 100%; outline: none;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px; margin-bottom: 14px;
 }
-.s-title::placeholder{color:var(--text3)}
-.pills{display:flex;gap:8px;flex-wrap:wrap}
-.pill{
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:20px;padding:7px 14px;
-  display:flex;align-items:center;gap:6px;min-height:38px;
+.s-title::placeholder { color: var(--text3); }
+.pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 7px 14px;
+  display: flex; align-items: center; gap: 6px; min-height: 38px;
 }
-.pill label{font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;flex-shrink:0}
-.pill input{background:transparent;border:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:56px;}
-.secs{padding:0 12px}
-.sec{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;}
-.sec:focus-within{border-color:var(--border2)}
-.sec-hdr{display:flex;align-items:center;padding:10px 14px;gap:8px;border-bottom:1px solid var(--border);}
-.badge{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:20px;font-weight:500;}
+.pill label { font-size: 10px; color: var(--text3); letter-spacing: .5px; text-transform: uppercase; flex-shrink: 0; }
+.pill input { background: transparent; border: none; color: var(--text2); font-family: 'Outfit',sans-serif; font-size: 13px; outline: none; width: 52px; }
+
+/* ─── SECCIONES ──────────────────────────────────────────────────────────────*/
+.secs { padding: 0 12px; }
+.sec { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 10px; overflow: hidden; }
+.sec:focus-within { border-color: var(--border2); }
+.sec-hdr { display: flex; align-items: center; padding: 10px 14px; gap: 8px; border-bottom: 1px solid var(--border); }
+.badge { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
 .bI{background:rgba(94,234,212,.14);color:#5eead4}
 .bV{background:rgba(78,205,196,.14);color:#4ecdc4}
 .bP{background:rgba(96,165,250,.14);color:#60a5fa}
 .bC{background:rgba(139,111,212,.14);color:#8b6fd4}
 .bB{background:rgba(200,169,110,.14);color:#c8a96e}
 .bO{background:rgba(148,163,184,.14);color:#94a3b8}
-.sec-num{font-size:12px;color:var(--text3)}
-.sec-btns{margin-left:auto;display:flex}
-.ib{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:color .15s;}
-.ib:active{color:var(--text);background:var(--bg4)}
-.sec-ta{width:100%;background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;font-weight:300;line-height:1.8;padding:14px;resize:none;outline:none;min-height:96px;overflow:hidden;}
-.sec-ta::placeholder{color:var(--text3)}
-.add-sec{padding:4px 12px 20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.add-sec-lbl{font-size:11px;color:var(--text3)}
-.chip{background:var(--bg3);border:none;border-radius:20px;padding:7px 16px;font-size:13px;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;min-height:36px;transition:all .15s;}
-.chip:active{background:var(--bg4);color:var(--accent)}
-.notes{padding:12px;display:flex;flex-direction:column;gap:10px}
-.nc{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px}
-.nc h4{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;font-weight:500;font-family:'Outfit',sans-serif}
-.nta{width:100%;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;line-height:1.7;resize:none;outline:none;min-height:72px}
-.nta::placeholder{color:var(--text3)}
-.rec-area{display:flex;flex-direction:column;align-items:center;padding:28px 20px 16px;gap:16px}
-.rec-clock{font-family:'DM Mono',monospace;font-size:38px;color:var(--text);letter-spacing:6px}
-.rec-ring{width:88px;height:88px;border-radius:50%;border:3px solid var(--red);background:rgba(224,92,92,.1);color:var(--red);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;transition:all .2s;}
-.rec-ring.on{background:rgba(224,92,92,.25);animation:pulse 1.2s ease-in-out infinite}
-.rec-ring.on::after{content:'';position:absolute;width:100%;height:100%;border-radius:50%;border:2px solid var(--red);animation:ripple 1.2s ease-out infinite;opacity:0;}
+.sec-num { font-size: 12px; color: var(--text3); }
+.sec-btns { margin-left: auto; display: flex; }
+.ib { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 15px; min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: color .12s; }
+.ib:active { color: var(--text); background: var(--bg4); }
+.sec-ta { width: 100%; background: transparent; border: none; color: var(--text); font-family: 'Outfit',sans-serif; font-size: 15px; font-weight: 300; line-height: 1.8; padding: 14px; resize: none; outline: none; min-height: 96px; overflow: hidden; }
+.sec-ta::placeholder { color: var(--text3); }
+.add-sec { padding: 4px 12px 24px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.add-sec-lbl { font-size: 11px; color: var(--text3); }
+.chip { background: var(--bg3); border: none; border-radius: 20px; padding: 7px 16px; font-size: 13px; color: var(--text2); cursor: pointer; font-family: 'Outfit',sans-serif; min-height: 36px; transition: background .12s, color .12s; }
+.chip:active { background: var(--bg4); color: var(--accent); }
+
+/* ─── NOTAS ──────────────────────────────────────────────────────────────────*/
+.notes { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.nc { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+.nc h4 { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; font-weight: 500; font-family: 'Outfit',sans-serif; }
+.nta { width: 100%; background: transparent; border: none; color: var(--text); font-family: 'DM Mono',monospace; font-size: 13px; line-height: 1.7; resize: none; outline: none; min-height: 72px; }
+.nta::placeholder { color: var(--text3); }
+
+/* ─── AUDIO ──────────────────────────────────────────────────────────────────*/
+.rec-area { display: flex; flex-direction: column; align-items: center; padding: 28px 20px 16px; gap: 16px; }
+.rec-clock { font-family: 'DM Mono',monospace; font-size: 40px; color: var(--text); letter-spacing: 6px; }
+.rec-btn { width: 88px; height: 88px; border-radius: 50%; border: 3px solid var(--red); background: rgba(224,92,92,.1); color: var(--red); font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; transition: background .2s; }
+.rec-btn.on { background: rgba(224,92,92,.25); animation: pulse 1.2s ease-in-out infinite; }
+.rec-btn.on::after { content:''; position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid var(--red); animation:ripple 1.2s ease-out infinite; opacity:0; }
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes ripple{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.5);opacity:0}}
-.rec-lbl{font-size:13px;color:var(--text3);text-align:center}
-.clips{padding:0 12px 12px}
-.clip{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.cplay{width:42px;height:42px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.cplay:active{border-color:var(--accent3);color:var(--accent3)}
-.cinfo{flex:1;min-width:0}
-.cname{background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:100%}
-.cdur{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
-.cwave{height:30px;background:var(--bg4);border-radius:6px;display:flex;align-items:center;gap:1px;padding:4px 8px;width:72px;flex-shrink:0;}
-.wb{background:var(--accent3);border-radius:1px;opacity:.55;flex:1}
-.ideas-body{padding:12px}
-.icard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;gap:10px;margin-bottom:8px;}
-.icard:focus-within{border-color:var(--border2)}
-.idot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:8px}
+.rec-hint { font-size: 13px; color: var(--text3); text-align: center; }
+.clips { padding: 0 12px 16px; }
+.clip { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.cplay { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; font-size: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color .12s, color .12s; }
+.cplay:active { border-color: var(--accent3); color: var(--accent3); }
+.cinfo { flex: 1; min-width: 0; }
+.cname { background: transparent; border: none; color: var(--text); font-family: 'Outfit',sans-serif; font-size: 13px; outline: none; width: 100%; }
+.cdur { font-size: 11px; color: var(--text3); font-family: 'DM Mono',monospace; margin-top: 2px; }
+.cwave { height: 30px; background: var(--bg4); border-radius: 6px; display: flex; align-items: center; gap: 1px; padding: 4px 8px; width: 70px; flex-shrink: 0; }
+.wb { background: var(--accent3); border-radius: 1px; opacity: .55; flex: 1; }
+
+/* ─── IDEAS ──────────────────────────────────────────────────────────────────*/
+.ideas { padding: 12px; }
+.idea { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 14px; display: flex; gap: 10px; margin-bottom: 8px; }
+.idea:focus-within { border-color: var(--border2); }
+.idot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
 .d0{background:var(--accent)}.d1{background:var(--accent2)}.d2{background:var(--accent3)}.d3{background:#60a5fa}
-.ita{background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;line-height:1.7;resize:none;outline:none;flex:1;min-height:44px;overflow:hidden;}
-.add-idea{display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg2);border:1px dashed var(--border2);border-radius:16px;cursor:pointer;color:var(--text2);font-family:'Outfit',sans-serif;font-size:14px;margin-bottom:8px;transition:all .15s;width:100%;}
-.add-idea:active{border-color:var(--accent);color:var(--accent)}
-.add-ico{width:32px;height:32px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.sheet-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;align-items:flex-end;justify-content:center;}
-.sheet-bg.open{display:flex}
-.sheet{background:var(--bg2);border-radius:20px 20px 0 0;border-top:1px solid var(--border2);padding:20px 20px 32px;width:100%;max-width:600px;}
-.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px;}
-.sheet h3{font-family:'DM Serif Display',serif;font-size:19px;margin-bottom:16px}
-.sheet input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:16px;outline:none;margin-bottom:14px;}
-.sheet input:focus{border-color:var(--accent)}
-.sheet-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{padding:14px;border-radius:12px;font-family:'Outfit',sans-serif;font-size:15px;cursor:pointer;font-weight:400;text-align:center;border:none;}
-.btn-g{background:var(--bg4);color:var(--text2)}
-.btn-g:active{background:var(--bg3)}
-.btn-a{background:var(--accent);color:#0e0e10;font-weight:500}
-.btn-a:active{opacity:.82}
-.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center;}
-.empty-ico{font-size:52px;margin-bottom:16px;opacity:.35}
-.empty h3{font-family:'DM Serif Display',serif;font-size:19px;margin-bottom:8px;color:var(--text2)}
-.empty p{font-size:13px;color:var(--text3);line-height:1.65;max-width:220px}
-.toast{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);border-radius:12px;padding:10px 16px;font-size:13px;gap:10px;align-items:center;z-index:100;white-space:nowrap;}
-.toast.show{display:flex}
-.toast-btn{background:var(--accent);border:none;color:#0e0e10;border-radius:8px;padding:6px 12px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;}
+.ita { background: transparent; border: none; color: var(--text); font-family: 'Outfit',sans-serif; font-size: 14px; font-weight: 300; line-height: 1.7; resize: none; outline: none; flex: 1; min-height: 44px; overflow: hidden; }
+.add-idea { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg2); border: 1px dashed var(--border2); border-radius: 16px; cursor: pointer; color: var(--text2); font-family: 'Outfit',sans-serif; font-size: 14px; margin-bottom: 8px; width: 100%; transition: border-color .12s, color .12s; }
+.add-idea:active { border-color: var(--accent); color: var(--accent); }
+.add-ico { width: 32px; height: 32px; border-radius: 50%; background: var(--bg4); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+
+/* ─── SHEETS ─────────────────────────────────────────────────────────────────*/
+.sheet-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 100; align-items: flex-end; justify-content: center; }
+.sheet-bg.open { display: flex; }
+.sheet { background: var(--bg2); border-radius: 20px 20px 0 0; border-top: 1px solid var(--border2); padding: 20px 20px 40px; width: 100%; max-width: 600px; }
+.sh-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 20px; }
+.sheet h3 { font-family: 'DM Serif Display',serif; font-size: 19px; margin-bottom: 16px; }
+.sheet input { width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: 12px; padding: 14px; color: var(--text); font-family: 'Outfit',sans-serif; font-size: 16px; outline: none; margin-bottom: 14px; }
+.sheet input:focus { border-color: var(--accent); }
+.sh-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn { padding: 14px; border-radius: 12px; font-family: 'Outfit',sans-serif; font-size: 15px; cursor: pointer; border: none; }
+.btn-g { background: var(--bg4); color: var(--text2); }
+.btn-g:active { background: var(--bg3); }
+.btn-a { background: var(--accent); color: #0e0e10; font-weight: 500; }
+.btn-a:active { opacity: .82; }
+
+/* ─── EMPTY ──────────────────────────────────────────────────────────────────*/
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 24px; text-align: center; }
+.empty-ico { font-size: 52px; margin-bottom: 16px; opacity: .3; }
+.empty h3 { font-family: 'DM Serif Display',serif; font-size: 19px; margin-bottom: 8px; color: var(--text2); }
+.empty p { font-size: 13px; color: var(--text3); line-height: 1.65; max-width: 220px; }
+
+/* ─── TOAST ──────────────────────────────────────────────────────────────────*/
+.toast { display: none; position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--accent); border-radius: 12px; padding: 10px 16px; font-size: 13px; gap: 10px; align-items: center; z-index: 200; white-space: nowrap; }
+.toast.show { display: flex; }
+.toast-btn { background: var(--accent); border: none; color: #0e0e10; border-radius: 8px; padding: 6px 12px; font-family: 'Outfit',sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; }
 </style>
 </head>
 <body>
-<div class="topbar" id="topbar"><div class="tb-logo">SongCraft</div></div>
-<div class="screens">
-  <div class="screen" id="scr-projects">
-    <div class="screen-body"><div class="list-wrap" id="proj-list"></div></div>
-    <button class="fab" onclick="openSheet('sp')" aria-label="Nuevo proyecto">+</button>
+
+<div id="shell">
+  <!-- Fila 1: topbar -->
+  <div id="topbar">
+    <div class="tb-logo">SongCraft</div>
   </div>
-  <div class="screen gone-right" id="scr-songs">
-    <div class="screen-body"><div class="list-wrap" id="song-list"></div></div>
-    <button class="fab" onclick="openSheet('ss')" aria-label="Nueva canción">+</button>
-  </div>
-  <div class="screen gone-right" id="scr-editor">
-    <div class="etabs" id="etabs">
-      <button class="etab act" data-p="lyrics">✍️ Letra</button>
-      <button class="etab" data-p="notes">🎵 Notas</button>
-      <button class="etab" data-p="audio">🎙️ Audio</button>
-      <button class="etab" data-p="ideas">💡 Ideas</button>
+
+  <!-- Fila 2: pantallas (altura seteada por JS) -->
+  <div id="mid">
+
+    <!-- Proyectos -->
+    <div class="screen show" id="scr-projects">
+      <div class="scroll fab-wrap">
+        <div class="list" id="proj-list"></div>
+        <button class="fab" onclick="openSheet('sp')">+</button>
+      </div>
     </div>
-    <div class="screen-body" id="editor-body">
-      <div class="epanel act" id="panel-lyrics">
-        <div class="s-hdr">
-          <input class="s-title" id="inp-title" placeholder="Título de la canción..." data-f="title">
-          <div class="pills">
-            <div class="pill"><label>BPM</label><input type="number" id="inp-bpm" data-f="bpm" placeholder="120" min="40" max="300"></div>
-            <div class="pill"><label>Tono</label><input type="text" id="inp-key" data-f="key" placeholder="Am"></div>
-            <div class="pill"><label>Género</label><input type="text" id="inp-genre" data-f="genre" placeholder="Pop"></div>
+
+    <!-- Canciones -->
+    <div class="screen" id="scr-songs">
+      <div class="scroll fab-wrap">
+        <div class="list" id="song-list"></div>
+        <button class="fab" onclick="openSheet('ss')">+</button>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="screen" id="scr-editor">
+      <div class="etabs">
+        <button class="etab act" data-p="lyrics">✍️ Letra</button>
+        <button class="etab" data-p="notes">🎵 Notas</button>
+        <button class="etab" data-p="audio">🎙️ Audio</button>
+        <button class="etab" data-p="ideas">💡 Ideas</button>
+      </div>
+      <div class="scroll" id="editor-scroll">
+        <div class="epanel act" id="panel-lyrics">
+          <div class="s-hdr">
+            <input class="s-title" id="inp-title" placeholder="Título de la canción...">
+            <div class="pills">
+              <div class="pill"><label>BPM</label><input type="number" id="inp-bpm" placeholder="120" min="40" max="300"></div>
+              <div class="pill"><label>Tono</label><input type="text" id="inp-key" placeholder="Am"></div>
+              <div class="pill"><label>Género</label><input type="text" id="inp-genre" placeholder="Pop"></div>
+            </div>
+          </div>
+          <div class="secs" id="secs"></div>
+          <div class="add-sec">
+            <span class="add-sec-lbl">+ Sección</span>
+            <button class="chip" onclick="addSec('Intro')">Intro</button>
+            <button class="chip" onclick="addSec('Verso')">Verso</button>
+            <button class="chip" onclick="addSec('Pre-coro')">Pre-coro</button>
+            <button class="chip" onclick="addSec('Coro')">Coro</button>
+            <button class="chip" onclick="addSec('Bridge')">Bridge</button>
+            <button class="chip" onclick="addSec('Outro')">Outro</button>
           </div>
         </div>
-        <div class="secs" id="secs"></div>
-        <div class="add-sec">
-          <span class="add-sec-lbl">+ Sección</span>
-          <button class="chip" onclick="addSec('Intro')">Intro</button>
-          <button class="chip" onclick="addSec('Verso')">Verso</button>
-          <button class="chip" onclick="addSec('Pre-coro')">Pre-coro</button>
-          <button class="chip" onclick="addSec('Coro')">Coro</button>
-          <button class="chip" onclick="addSec('Bridge')">Bridge</button>
-          <button class="chip" onclick="addSec('Outro')">Outro</button>
+        <div class="epanel" id="panel-notes">
+          <div class="notes">
+            <div class="nc"><h4>Acordes</h4><textarea class="nta" id="nt-chords" placeholder="Am - F - C - G" rows="4"></textarea></div>
+            <div class="nc"><h4>Estructura</h4><textarea class="nta" id="nt-struct" placeholder="Intro x8&#10;Verso x16&#10;Coro x8" rows="4"></textarea></div>
+            <div class="nc"><h4>Referencias</h4><textarea class="nta" id="nt-refs" placeholder="Artistas, canciones, mood..." rows="4"></textarea></div>
+            <div class="nc"><h4>Notas</h4><textarea class="nta" id="nt-notes" placeholder="Ideas sueltas..." rows="4"></textarea></div>
+          </div>
         </div>
-      </div>
-      <div class="epanel" id="panel-notes">
-        <div class="notes">
-          <div class="nc"><h4>Acordes</h4><textarea class="nta" id="nt-chords" data-f="chords" placeholder="Am - F - C - G" rows="4"></textarea></div>
-          <div class="nc"><h4>Estructura</h4><textarea class="nta" id="nt-struct" data-f="structure" placeholder="Intro x8&#10;Verso x16&#10;Coro x8" rows="4"></textarea></div>
-          <div class="nc"><h4>Referencias</h4><textarea class="nta" id="nt-refs" data-f="references" placeholder="Artistas, canciones, mood..." rows="4"></textarea></div>
-          <div class="nc"><h4>Notas</h4><textarea class="nta" id="nt-notes" data-f="notes" placeholder="Ideas sueltas..." rows="4"></textarea></div>
+        <div class="epanel" id="panel-audio">
+          <div class="rec-area">
+            <div class="rec-clock" id="rec-clock">00:00</div>
+            <button class="rec-btn" id="rec-btn" onclick="toggleRec()"><span id="rec-ico">⏺</span></button>
+            <div class="rec-hint" id="rec-hint">Toca para grabar una idea</div>
+          </div>
+          <div class="clips" id="clips"></div>
         </div>
-      </div>
-      <div class="epanel" id="panel-audio">
-        <div class="rec-area">
-          <div class="rec-clock" id="rec-clock">00:00</div>
-          <button class="rec-ring" id="rec-ring" onclick="toggleRec()"><span id="rec-ico">⏺</span></button>
-          <div class="rec-lbl" id="rec-lbl">Toca para grabar una idea</div>
-        </div>
-        <div class="clips" id="clips"></div>
-      </div>
-      <div class="epanel" id="panel-ideas">
-        <div class="ideas-body" id="ideas-body">
-          <button class="add-idea" onclick="addIdea()"><span class="add-ico">+</span>Agregar idea o concepto</button>
+        <div class="epanel" id="panel-ideas">
+          <div class="ideas" id="ideas-wrap">
+            <button class="add-idea" onclick="addIdea()">
+              <span class="add-ico">+</span> Agregar idea o concepto
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+  </div><!-- /#mid -->
+
+  <!-- Fila 3: tabbar -->
+  <div id="tabbar">
+    <button class="tbb act" id="tbb-projects" onclick="go('projects')">
+      <span class="tbb-ico">📁</span><span class="tbb-lbl">Proyectos</span>
+    </button>
+    <button class="tbb" id="tbb-songs" onclick="go('songs')">
+      <span class="tbb-ico">🎵</span><span class="tbb-lbl">Canciones</span>
+    </button>
+    <button class="tbb" id="tbb-editor" onclick="go('editor')">
+      <span class="tbb-ico">✍️</span><span class="tbb-lbl">Editor</span>
+    </button>
   </div>
 </div>
-<div class="tabbar">
-  <button class="tbb act" id="tbb-projects" onclick="go('projects')"><span class="tbb-ico">📁</span><span class="tbb-lbl">Proyectos</span></button>
-  <button class="tbb" id="tbb-songs" onclick="go('songs')"><span class="tbb-ico">🎵</span><span class="tbb-lbl">Canciones</span></button>
-  <button class="tbb" id="tbb-editor" onclick="go('editor')"><span class="tbb-ico">✍️</span><span class="tbb-lbl">Editor</span></button>
-</div>
+
+<!-- Sheets -->
 <div class="sheet-bg" id="sp" onclick="if(event.target===this)closeSheet('sp')">
-  <div class="sheet"><div class="sheet-handle"></div><h3>Nuevo proyecto</h3><input id="ip" placeholder="Álbum / EP / colección..." autocomplete="off"><div class="sheet-btns"><button class="btn btn-g" onclick="closeSheet('sp')">Cancelar</button><button class="btn btn-a" onclick="createP()">Crear</button></div></div>
+  <div class="sheet"><div class="sh-handle"></div><h3>Nuevo proyecto</h3>
+    <input id="ip" placeholder="Álbum / EP / colección..." autocomplete="off">
+    <div class="sh-btns"><button class="btn btn-g" onclick="closeSheet('sp')">Cancelar</button><button class="btn btn-a" onclick="createP()">Crear</button></div>
+  </div>
 </div>
 <div class="sheet-bg" id="ss" onclick="if(event.target===this)closeSheet('ss')">
-  <div class="sheet"><div class="sheet-handle"></div><h3>Nueva canción</h3><input id="is" placeholder="Título de la canción..." autocomplete="off"><div class="sheet-btns"><button class="btn btn-g" onclick="closeSheet('ss')">Cancelar</button><button class="btn btn-a" onclick="createS()">Crear</button></div></div>
+  <div class="sheet"><div class="sh-handle"></div><h3>Nueva canción</h3>
+    <input id="is" placeholder="Título de la canción..." autocomplete="off">
+    <div class="sh-btns"><button class="btn btn-g" onclick="closeSheet('ss')">Cancelar</button><button class="btn btn-a" onclick="createS()">Crear</button></div>
+  </div>
 </div>
-<div class="toast" id="toast">🎵 Nueva versión<button class="toast-btn" onclick="applyUpd()">Actualizar</button></div>
+<div class="toast" id="toast">🎵 Nueva versión <button class="toast-btn" onclick="applyUpd()">Actualizar</button></div>
+
 <script>
-const swCode=`const CN='sc-__SW_TS__';self.addEventListener('install',e=>{e.waitUntil(caches.open(CN).then(c=>c.addAll(['./'])).then(()=>self.skipWaiting()));});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CN).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});self.addEventListener('message',e=>{if(e.data?.type==='SKIP')self.skipWaiting();});`;
-let waitW=null;
-if('serviceWorker' in navigator){const b=new Blob([swCode],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(b)).then(reg=>{reg.addEventListener('updatefound',()=>{const nw=reg.installing;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller){waitW=nw;document.getElementById('toast').classList.add('show');}});});});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());}
-function applyUpd(){waitW?.postMessage({type:'SKIP'});location.reload();}
-(()=>{const mb=new Blob([JSON.stringify({name:'SongCraft',short_name:'SongCraft',start_url:'./',display:'standalone',background_color:'#0e0e10',theme_color:'#0e0e10',icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230e0e10'/><rect x='72' y='52' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='100' y='44' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='72' y='52' width='38' height='10' rx='5' fill='%23c8a96e'/><ellipse cx='70' cy='126' rx='14' ry='10' fill='%23c8a96e'/><ellipse cx='98' cy='118' rx='14' ry='10' fill='%23c8a96e'/></svg>"),sizes:'192x192',type:'image/svg+xml'}]})],{type:'application/manifest+json'});document.head.insertAdjacentHTML('beforeend',`<link rel="manifest" href="${URL.createObjectURL(mb)}">`);})();
-const DB='songcraft_v2';
-let S={projects:[],curP:null,curS:null,scr:'projects'};
-let saveT=null;
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const ar=ta=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';};
-const cP=()=>S.projects.find(x=>x.id===S.curP);
-const cS=()=>{const p=cP();return p?p.songs.find(x=>x.id===S.curS):null;};
-function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(DB,JSON.stringify(S));}catch(e){}},400);}
-function load(){
-  try{const d=localStorage.getItem(DB);if(d)S=JSON.parse(d);}catch(e){}
-  if(!S.projects)S.projects=[];
-  renderProjs();
-  if(S.curP){const p=cP();if(p){renderSongs(p);if(S.curS){const s=cS();if(s)loadEditor(s);}}}
-  go(S.scr||'projects',false);
+// ── Altura real por JS (evita bugs iOS Safari con 100vh / 100dvh) ────────────
+function setHeight() {
+  const sh = document.getElementById('shell');
+  const tb = document.getElementById('topbar');
+  const bar = document.getElementById('tabbar');
+  const mid = document.getElementById('mid');
+  const h = window.innerHeight;
+  sh.style.height = h + 'px';
+  mid.style.height = (h - tb.offsetHeight - bar.offsetHeight) + 'px';
 }
-const SCR=['projects','songs','editor'];
-function go(name,anim=true){
-  S.scr=name;const cur=SCR.indexOf(name);
-  SCR.forEach((s,i)=>{
-    const el=document.getElementById('scr-'+s);
-    const tb=document.getElementById('tbb-'+s);
-    el.style.transition=anim?'transform .28s cubic-bezier(.4,0,.2,1)':'none';
-    if(i===cur){el.className='screen';if(tb)tb.classList.add('act');}
-    else if(i<cur){el.className='screen gone-left';if(tb)tb.classList.remove('act');}
-    else{el.className='screen gone-right';if(tb)tb.classList.remove('act');}
+setHeight();
+window.addEventListener('resize', setHeight);
+// En iOS el resize no siempre dispara al mostrar/ocultar el teclado
+window.addEventListener('orientationchange', () => setTimeout(setHeight, 300));
+
+// ── SW ────────────────────────────────────────────────────────────────────────
+const swCode = `const CN='sc-__SW_TS__';self.addEventListener('install',e=>{e.waitUntil(caches.open(CN).then(c=>c.addAll(['./'])).then(()=>self.skipWaiting()));});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CN).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});self.addEventListener('message',e=>{if(e.data?.type==='SKIP')self.skipWaiting();});`;
+let waitW = null;
+if ('serviceWorker' in navigator) {
+  const b = new Blob([swCode], {type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(b)).then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+          waitW = nw; document.getElementById('toast').classList.add('show');
+        }
+      });
+    });
   });
-  const tb=document.getElementById('topbar');
-  if(name==='projects'){tb.innerHTML=`<div class="tb-logo">SongCraft</div>`;}
-  else if(name==='songs'){tb.innerHTML=`<button class="tb-back" onclick="go('projects')">‹ Inicio</button><div class="tb-title">${esc(cP()?.name||'')}</div><div class="tb-right"></div>`;}
-  else{tb.innerHTML=`<button class="tb-back" onclick="go('songs')">‹ Canciones</button><div class="tb-title">${esc(cS()?.title||'Sin título')}</div><div class="tb-right"></div>`;}
+  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+}
+function applyUpd() { waitW?.postMessage({type:'SKIP'}); location.reload(); }
+
+// ── Manifest ──────────────────────────────────────────────────────────────────
+(()=>{
+  const mb = new Blob([JSON.stringify({name:'SongCraft',short_name:'SongCraft',start_url:'./',display:'standalone',background_color:'#0e0e10',theme_color:'#0e0e10',icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230e0e10'/><rect x='72' y='52' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='100' y='44' width='10' height='72' rx='5' fill='%23c8a96e'/><rect x='72' y='52' width='38' height='10' rx='5' fill='%23c8a96e'/><ellipse cx='70' cy='126' rx='14' ry='10' fill='%23c8a96e'/><ellipse cx='98' cy='118' rx='14' ry='10' fill='%23c8a96e'/></svg>"),sizes:'192x192',type:'image/svg+xml'}]})], {type:'application/manifest+json'});
+  document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(mb)}">`);
+})();
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const DB = 'songcraft_v2';
+let S = {projects:[], curP:null, curS:null, scr:'projects'};
+let saveT = null;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ar  = ta => { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; };
+const pad = n => String(n).padStart(2,'0');
+const cP  = () => S.projects.find(x => x.id === S.curP);
+const cS  = () => { const p=cP(); return p ? p.songs.find(x=>x.id===S.curS) : null; };
+function save() { clearTimeout(saveT); saveT=setTimeout(()=>{try{localStorage.setItem(DB,JSON.stringify(S));}catch(e){}},400); }
+
+function load() {
+  try { const d=localStorage.getItem(DB); if(d) S=JSON.parse(d); } catch(e) {}
+  if (!S.projects) S.projects = [];
+  renderProjs();
+  if (S.curP) { const p=cP(); if(p) { renderSongs(p); if(S.curS){const s=cS();if(s)loadEditor(s);} } }
+  go(S.scr||'projects');
+}
+
+// ── Nav (sin animación — solo muestra/oculta) ─────────────────────────────────
+const SCRS = ['projects','songs','editor'];
+function go(name) {
+  S.scr = name;
+  SCRS.forEach(s => {
+    const el = document.getElementById('scr-'+s);
+    const tb = document.getElementById('tbb-'+s);
+    if (s === name) { el.classList.add('show'); if(tb) tb.classList.add('act'); }
+    else            { el.classList.remove('show'); if(tb) tb.classList.remove('act'); }
+  });
+  // Topbar
+  const tb = document.getElementById('topbar');
+  if (name === 'projects') {
+    tb.innerHTML = `<div class="tb-logo">SongCraft</div>`;
+  } else if (name === 'songs') {
+    tb.innerHTML = `<button class="tb-back" onclick="go('projects')">‹ Inicio</button><div class="tb-title">${esc(cP()?.name||'')}</div><div class="tb-spacer"></div>`;
+  } else {
+    tb.innerHTML = `<button class="tb-back" onclick="go('songs')">‹ Canciones</button><div class="tb-title">${esc(cS()?.title||'Sin título')}</div><div class="tb-spacer"></div>`;
+  }
   save();
 }
-function renderProjs(){
-  const el=document.getElementById('proj-list');
-  if(!S.projects.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🎸</div><h3>Tu estudio está vacío</h3><p>Crea un proyecto para organizar tus canciones e ideas.</p></div>`;return;}
-  el.innerHTML='';
-  S.projects.forEach(p=>{
-    const d=document.createElement('div');d.className='pcard'+(p.id===S.curP?' sel':'');
-    d.innerHTML=`<span class="pcard-icon">📁</span><div class="pcard-info"><div class="pcard-name">${esc(p.name)}</div><div class="pcard-meta">${p.songs.length} canción${p.songs.length!==1?'es':''}</div></div><span class="pcard-arr">›</span>`;
-    d.onclick=()=>{S.curP=p.id;S.curS=null;renderProjs();renderSongs(p);go('songs');};
+
+// ── Projects ──────────────────────────────────────────────────────────────────
+function renderProjs() {
+  const el = document.getElementById('proj-list');
+  if (!S.projects.length) { el.innerHTML=`<div class="empty"><div class="empty-ico">🎸</div><h3>Tu estudio está vacío</h3><p>Crea un proyecto para organizar tus canciones e ideas.</p></div>`; return; }
+  el.innerHTML = '';
+  S.projects.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'pcard'+(p.id===S.curP?' sel':'');
+    d.innerHTML = `<span class="c-ico">📁</span><div class="c-info"><div class="c-name">${esc(p.name)}</div><div class="c-meta">${p.songs.length} canción${p.songs.length!==1?'es':''}</div></div><span class="c-arr">›</span>`;
+    d.onclick = () => { S.curP=p.id; S.curS=null; renderProjs(); renderSongs(p); go('songs'); };
     el.appendChild(d);
   });
 }
-function createP(){
-  const name=document.getElementById('ip').value.trim();if(!name)return;
-  const p={id:uid(),name,songs:[]};S.projects.push(p);closeSheet('sp');save();
-  S.curP=p.id;renderProjs();renderSongs(p);go('songs');
+function createP() {
+  const name = document.getElementById('ip').value.trim(); if(!name) return;
+  const p = {id:uid(), name, songs:[]};
+  S.projects.push(p); closeSheet('sp'); save();
+  S.curP = p.id; renderProjs(); renderSongs(p); go('songs');
 }
-function renderSongs(p){
-  const el=document.getElementById('song-list');
-  if(!p.songs.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🎵</div><h3>Sin canciones aún</h3><p>Añade tu primera canción a "${esc(p.name)}".</p></div>`;return;}
-  el.innerHTML='';
-  p.songs.forEach(s=>{
-    const d=document.createElement('div');d.className='scard'+(s.id===S.curS?' sel':'');
-    d.innerHTML=`<span class="scard-ico">🎵</span><div class="scard-info"><div class="scard-name">${esc(s.title||'Sin título')}</div><div class="scard-meta">${s.sections?.length||0} secc. · ${s.audioClips?.length||0} audios · ${s.ideas?.length||0} ideas</div></div><span class="pcard-arr">›</span>`;
-    d.onclick=()=>{S.curS=s.id;renderSongs(p);loadEditor(s);go('editor');};
+
+// ── Songs ─────────────────────────────────────────────────────────────────────
+function renderSongs(p) {
+  const el = document.getElementById('song-list');
+  if (!p.songs.length) { el.innerHTML=`<div class="empty"><div class="empty-ico">🎵</div><h3>Sin canciones aún</h3><p>Añade tu primera canción a "${esc(p.name)}".</p></div>`; return; }
+  el.innerHTML = '';
+  p.songs.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'scard'+(s.id===S.curS?' sel':'');
+    d.innerHTML = `<span class="c-ico">🎵</span><div class="c-info"><div class="c-name">${esc(s.title||'Sin título')}</div><div class="c-meta">${s.sections?.length||0} secc · ${s.audioClips?.length||0} audios · ${s.ideas?.length||0} ideas</div></div><span class="c-arr">›</span>`;
+    d.onclick = () => { S.curS=s.id; renderSongs(p); loadEditor(s); go('editor'); };
     el.appendChild(d);
   });
 }
-function createS(){
-  const name=document.getElementById('is').value.trim();const p=cP();if(!p)return;
-  const s={id:uid(),title:name||'Sin título',bpm:'',key:'',genre:'',sections:[],chords:'',structure:'',references:'',notes:'',audioClips:[],ideas:[]};
-  p.songs.push(s);closeSheet('ss');save();S.curS=s.id;renderSongs(p);loadEditor(s);go('editor');
+function createS() {
+  const name = document.getElementById('is').value.trim(); const p=cP(); if(!p) return;
+  const s = {id:uid(),title:name||'Sin título',bpm:'',key:'',genre:'',sections:[],chords:'',structure:'',references:'',notes:'',audioClips:[],ideas:[]};
+  p.songs.push(s); closeSheet('ss'); save(); S.curS=s.id; renderSongs(p); loadEditor(s); go('editor');
 }
-function loadEditor(song){
-  const fmap={title:'inp-title',bpm:'inp-bpm',key:'inp-key',genre:'inp-genre'};
-  Object.entries(fmap).forEach(([f,id])=>{const el=document.getElementById(id);if(!el)return;el.value=song[f]||'';el.oninput=()=>{song[f]=el.value;if(f==='title'){const t=document.querySelector('#topbar .tb-title');if(t)t.textContent=song.title||'Sin título';}save();};});
-  const nmap={chords:'nt-chords',structure:'nt-struct',references:'nt-refs',notes:'nt-notes'};
-  Object.entries(nmap).forEach(([f,id])=>{const el=document.getElementById(id);if(!el)return;el.value=song[f]||'';el.oninput=()=>{song[f]=el.value;ar(el);save();};ar(el);});
-  document.querySelectorAll('.etab').forEach(t=>{t.onclick=()=>{document.querySelectorAll('.etab').forEach(x=>x.classList.remove('act'));document.querySelectorAll('.epanel').forEach(x=>x.classList.remove('act'));t.classList.add('act');document.getElementById('panel-'+t.dataset.p).classList.add('act');document.getElementById('editor-body').scrollTop=0;};});
-  const sc=document.getElementById('secs');sc.innerHTML='';(song.sections||[]).forEach(s=>appSec(s,song));
+
+// ── Editor ────────────────────────────────────────────────────────────────────
+function loadEditor(song) {
+  const fm = {title:'inp-title',bpm:'inp-bpm',key:'inp-key',genre:'inp-genre'};
+  Object.entries(fm).forEach(([f,id]) => {
+    const el=document.getElementById(id); if(!el) return;
+    el.value = song[f]||'';
+    el.oninput = () => { song[f]=el.value; if(f==='title'){const t=document.querySelector('#topbar .tb-title');if(t)t.textContent=song.title||'Sin título';} save(); };
+  });
+  const nm = {chords:'nt-chords',structure:'nt-struct',references:'nt-refs',notes:'nt-notes'};
+  Object.entries(nm).forEach(([f,id]) => {
+    const el=document.getElementById(id); if(!el) return;
+    el.value=song[f]||''; el.oninput=()=>{song[f]=el.value;ar(el);save();}; ar(el);
+  });
+  document.querySelectorAll('.etab').forEach(t => {
+    t.onclick = () => {
+      document.querySelectorAll('.etab').forEach(x=>x.classList.remove('act'));
+      document.querySelectorAll('.epanel').forEach(x=>x.classList.remove('act'));
+      t.classList.add('act');
+      document.getElementById('panel-'+t.dataset.p).classList.add('act');
+      document.getElementById('editor-scroll').scrollTop = 0;
+    };
+  });
+  const sc=document.getElementById('secs'); sc.innerHTML='';
+  (song.sections||[]).forEach(s=>appSec(s,song));
   renderClips(song);
-  const ib=document.getElementById('ideas-body');const addBtn=ib.querySelector('.add-idea');ib.innerHTML='';ib.appendChild(addBtn);(song.ideas||[]).forEach(i=>appIdeaEl(i,song));
+  const iw=document.getElementById('ideas-wrap');
+  const addBtn=iw.querySelector('.add-idea');
+  iw.innerHTML=''; iw.appendChild(addBtn);
+  (song.ideas||[]).forEach(i=>appIdeaEl(i,song));
 }
-const BCLS={Intro:'bI',Verso:'bV','Pre-coro':'bP',Coro:'bC',Bridge:'bB',Outro:'bO'};
-function addSec(type){const song=cS();if(!song)return;const sec={id:uid(),type,text:''};song.sections.push(sec);appSec(sec,song);save();refreshMeta();}
-function appSec(sec,song){
-  const ct=document.getElementById('secs');if(!ct)return;
-  const same=song.sections.filter(s=>s.type===sec.type);const num=same.length>1?' '+(same.indexOf(sec)+1):'';
-  const div=document.createElement('div');div.className='sec';div.dataset.id=sec.id;
-  div.innerHTML=`<div class="sec-hdr"><span class="badge ${BCLS[sec.type]||'bV'}">${esc(sec.type)}</span><span class="sec-num">${esc(num)}</span><div class="sec-btns"><button class="ib" onclick="mvSec('${sec.id}','up')">↑</button><button class="ib" onclick="mvSec('${sec.id}','down')">↓</button><button class="ib" onclick="dlSec('${sec.id}')">✕</button></div></div><textarea class="sec-ta" placeholder="Escribe la letra aquí..." rows="3"></textarea>`;
-  const ta=div.querySelector('textarea');ta.value=sec.text;ta.addEventListener('input',()=>{sec.text=ta.value;ar(ta);save();});ct.appendChild(div);ar(ta);
+
+// ── Sections ──────────────────────────────────────────────────────────────────
+const BC = {Intro:'bI',Verso:'bV','Pre-coro':'bP',Coro:'bC',Bridge:'bB',Outro:'bO'};
+function addSec(type) { const song=cS(); if(!song) return; const sec={id:uid(),type,text:''}; song.sections.push(sec); appSec(sec,song); save(); refreshMeta(); }
+function appSec(sec,song) {
+  const ct=document.getElementById('secs'); if(!ct) return;
+  const same=song.sections.filter(s=>s.type===sec.type);
+  const num=same.length>1?' '+(same.indexOf(sec)+1):'';
+  const div=document.createElement('div'); div.className='sec'; div.dataset.id=sec.id;
+  div.innerHTML=`<div class="sec-hdr"><span class="badge ${BC[sec.type]||'bV'}">${esc(sec.type)}</span><span class="sec-num">${esc(num)}</span><div class="sec-btns"><button class="ib" onclick="mvSec('${sec.id}','up')">↑</button><button class="ib" onclick="mvSec('${sec.id}','down')">↓</button><button class="ib" onclick="dlSec('${sec.id}')">✕</button></div></div><textarea class="sec-ta" placeholder="Escribe la letra aquí..." rows="3"></textarea>`;
+  const ta=div.querySelector('textarea'); ta.value=sec.text;
+  ta.addEventListener('input',()=>{sec.text=ta.value;ar(ta);save();});
+  ct.appendChild(div); ar(ta);
 }
-function mvSec(id,dir){const song=cS();if(!song)return;const i=song.sections.findIndex(s=>s.id===id);const ni=dir==='up'?i-1:i+1;if(ni<0||ni>=song.sections.length)return;[song.sections[i],song.sections[ni]]=[song.sections[ni],song.sections[i]];save();loadEditor(song);}
-function dlSec(id){const song=cS();if(!song)return;song.sections=song.sections.filter(s=>s.id!==id);document.getElementById('secs').querySelector(`[data-id="${id}"]`)?.remove();save();refreshMeta();}
+function mvSec(id,dir) { const song=cS();if(!song)return;const i=song.sections.findIndex(s=>s.id===id);const ni=dir==='up'?i-1:i+1;if(ni<0||ni>=song.sections.length)return;[song.sections[i],song.sections[ni]]=[song.sections[ni],song.sections[i]];save();loadEditor(song); }
+function dlSec(id) { const song=cS();if(!song)return;song.sections=song.sections.filter(s=>s.id!==id);document.getElementById('secs').querySelector(`[data-id="${id}"]`)?.remove();save();refreshMeta(); }
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
 let mr=null,chunks=[],rInt=null,rSec=0;
-async function toggleRec(){
-  if(mr?.state==='recording'){stopRec();return;}
-  try{
+async function toggleRec() {
+  if (mr?.state==='recording') { stopRec(); return; }
+  try {
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    mr=new MediaRecorder(stream);chunks=[];mr.ondataavailable=e=>chunks.push(e.data);mr.onstop=onRecStop;mr.start();rSec=0;
-    document.getElementById('rec-ring').classList.add('on');document.getElementById('rec-ico').textContent='⏹';document.getElementById('rec-lbl').textContent='Grabando… toca para detener';
-    rInt=setInterval(()=>{rSec++;document.getElementById('rec-clock').textContent=String(Math.floor(rSec/60)).padStart(2,'0')+':'+String(rSec%60).padStart(2,'0');},1000);
-  }catch(e){const l=document.getElementById('rec-lbl');if(l)l.textContent='Sin permiso de micrófono';}
+    mr=new MediaRecorder(stream); chunks=[];
+    mr.ondataavailable=e=>chunks.push(e.data); mr.onstop=onStop; mr.start(); rSec=0;
+    document.getElementById('rec-btn').classList.add('on');
+    document.getElementById('rec-ico').textContent='⏹';
+    document.getElementById('rec-hint').textContent='Grabando… toca para detener';
+    rInt=setInterval(()=>{rSec++;document.getElementById('rec-clock').textContent=pad(Math.floor(rSec/60))+':'+pad(rSec%60);},1000);
+  } catch(e) { const h=document.getElementById('rec-hint'); if(h) h.textContent='Sin permiso de micrófono'; }
 }
-function stopRec(){clearInterval(rInt);mr.stop();mr.stream.getTracks().forEach(t=>t.stop());document.getElementById('rec-ring').classList.remove('on');document.getElementById('rec-ico').textContent='⏺';document.getElementById('rec-lbl').textContent='Toca para grabar una idea';}
-function onRecStop(){
-  const blob=new Blob(chunks,{type:'audio/webm'});const url=URL.createObjectURL(blob);const song=cS();if(!song)return;
-  if(!song.audioClips)song.audioClips=[];const clip={id:uid(),name:'Idea '+(song.audioClips.length+1),url,duration:rSec,bars:rBars()};
-  song.audioClips.push(clip);appClipEl(clip);save();refreshMeta();
+function stopRec() { clearInterval(rInt);mr.stop();mr.stream.getTracks().forEach(t=>t.stop());document.getElementById('rec-btn').classList.remove('on');document.getElementById('rec-ico').textContent='⏺';document.getElementById('rec-hint').textContent='Toca para grabar una idea'; }
+function onStop() {
+  const blob=new Blob(chunks,{type:'audio/webm'}); const url=URL.createObjectURL(blob);
+  const song=cS(); if(!song) return;
+  if(!song.audioClips) song.audioClips=[];
+  const clip={id:uid(),name:'Idea '+(song.audioClips.length+1),url,duration:rSec,bars:Array.from({length:18},()=>Math.floor(10+Math.random()*80))};
+  song.audioClips.push(clip); appClip(clip); save(); refreshMeta();
 }
-const rBars=()=>Array.from({length:18},()=>Math.floor(10+Math.random()*80));
-function renderClips(song){const el=document.getElementById('clips');if(!el)return;el.innerHTML='';(song.audioClips||[]).forEach(c=>appClipEl(c));}
-function appClipEl(clip){
-  const el=document.getElementById('clips');if(!el)return;
-  const bars=(clip.bars||rBars()).map(h=>`<div class="wb" style="height:${h}%"></div>`).join('');
-  const dur=typeof clip.duration==='number'?String(Math.floor(clip.duration/60)).padStart(2,'0')+':'+String(clip.duration%60).padStart(2,'0'):'--:--';
-  const div=document.createElement('div');div.className='clip';div.dataset.id=clip.id;
+function renderClips(song) { const el=document.getElementById('clips');if(!el)return;el.innerHTML='';(song.audioClips||[]).forEach(c=>appClip(c)); }
+function appClip(clip) {
+  const el=document.getElementById('clips'); if(!el) return;
+  const bars=(clip.bars||[]).map(h=>`<div class="wb" style="height:${h}%"></div>`).join('');
+  const dur=typeof clip.duration==='number'?pad(Math.floor(clip.duration/60))+':'+pad(clip.duration%60):'--:--';
+  const div=document.createElement('div'); div.className='clip'; div.dataset.id=clip.id;
   div.innerHTML=`<button class="cplay" onclick="playClip('${clip.id}')">▶</button><div class="cinfo"><input class="cname" value="${esc(clip.name)}" placeholder="Nombre..."><div class="cdur">${dur}</div></div><div class="cwave">${bars}</div><button class="ib" onclick="dlClip('${clip.id}')">✕</button>`;
-  div.querySelector('input').addEventListener('change',e=>{clip.name=e.target.value;save();});el.appendChild(div);
+  div.querySelector('input').addEventListener('change',e=>{clip.name=e.target.value;save();});
+  el.appendChild(div);
 }
-function playClip(id){const song=cS();if(!song)return;const c=song.audioClips.find(x=>x.id===id);if(c?.url)new Audio(c.url).play();}
-function dlClip(id){const song=cS();if(!song)return;song.audioClips=song.audioClips.filter(c=>c.id!==id);document.getElementById('clips').querySelector(`[data-id="${id}"]`)?.remove();save();refreshMeta();}
-function addIdea(){const song=cS();if(!song)return;if(!song.ideas)song.ideas=[];const idea={id:uid(),text:'',color:song.ideas.length%4};song.ideas.push(idea);appIdeaEl(idea,song);save();}
-function appIdeaEl(idea,song){
-  const wrap=document.getElementById('ideas-body');if(!wrap)return;const addBtn=wrap.querySelector('.add-idea');
-  const div=document.createElement('div');div.className='icard';div.dataset.id=idea.id;
+function playClip(id) { const song=cS();if(!song)return;const c=song.audioClips.find(x=>x.id===id);if(c?.url)new Audio(c.url).play(); }
+function dlClip(id) { const song=cS();if(!song)return;song.audioClips=song.audioClips.filter(c=>c.id!==id);document.getElementById('clips').querySelector(`[data-id="${id}"]`)?.remove();save();refreshMeta(); }
+
+// ── Ideas ─────────────────────────────────────────────────────────────────────
+function addIdea() { const song=cS();if(!song)return;if(!song.ideas)song.ideas=[];const idea={id:uid(),text:'',color:song.ideas.length%4};song.ideas.push(idea);appIdeaEl(idea,song);save(); }
+function appIdeaEl(idea,song) {
+  const wrap=document.getElementById('ideas-wrap'); if(!wrap) return;
+  const addBtn=wrap.querySelector('.add-idea');
+  const div=document.createElement('div'); div.className='idea'; div.dataset.id=idea.id;
   div.innerHTML=`<div class="idot d${idea.color||0}"></div><textarea class="ita" placeholder="Concepto, rima, imagen…" rows="2"></textarea><button class="ib" onclick="dlIdea('${idea.id}')">✕</button>`;
-  const ta=div.querySelector('textarea');ta.value=idea.text;ta.addEventListener('input',()=>{idea.text=ta.value;ar(ta);save();});ar(ta);wrap.insertBefore(div,addBtn);ta.focus();
+  const ta=div.querySelector('textarea'); ta.value=idea.text;
+  ta.addEventListener('input',()=>{idea.text=ta.value;ar(ta);save();}); ar(ta);
+  wrap.insertBefore(div,addBtn); ta.focus();
 }
-function dlIdea(id){const song=cS();if(!song)return;song.ideas=song.ideas.filter(i=>i.id!==id);document.getElementById('ideas-body')?.querySelector(`[data-id="${id}"]`)?.remove();save();}
-function refreshMeta(){const p=cP();if(p)renderSongs(p);}
-function openSheet(id){document.getElementById(id).classList.add('open');setTimeout(()=>{const i=document.querySelector(`#${id} input`);if(i){i.value='';i.focus();}},80);}
-function closeSheet(id){document.getElementById(id).classList.remove('open');}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){['sp','ss'].forEach(id=>closeSheet(id));}if(e.key==='Enter'){if(document.getElementById('sp').classList.contains('open'))createP();else if(document.getElementById('ss').classList.contains('open'))createS();}});
+function dlIdea(id) { const song=cS();if(!song)return;song.ideas=song.ideas.filter(i=>i.id!==id);document.getElementById('ideas-wrap')?.querySelector(`[data-id="${id}"]`)?.remove();save(); }
+
+// ── Misc ──────────────────────────────────────────────────────────────────────
+function refreshMeta() { const p=cP(); if(p) renderSongs(p); }
+function openSheet(id) { document.getElementById(id).classList.add('open'); setTimeout(()=>{const i=document.querySelector(`#${id} input`);if(i){i.value='';i.focus();}},80); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') ['sp','ss'].forEach(id=>closeSheet(id));
+  if (e.key==='Enter') { if(document.getElementById('sp').classList.contains('open'))createP(); else if(document.getElementById('ss').classList.contains('open'))createS(); }
+});
+
 load();
 </script>
 </body>
