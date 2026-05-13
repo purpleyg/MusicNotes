@@ -119,6 +119,8 @@ html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-
   display: flex; align-items: center;
 }
 .tb-spacer { margin-left: auto; min-width: 44px; }
+.tb-menu-btn { background:transparent; border:none; color:var(--text2); font-size:20px; cursor:pointer; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; border-radius:10px; transition:background .12s; margin-left:auto; }
+.tb-menu-btn:active { background:var(--bg3); }
 
 /* ─── TABBAR ─────────────────────────────────────────────────────────────────*/
 .tbb {
@@ -285,6 +287,16 @@ html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-
 .empty p { font-size: 13px; color: var(--text3); line-height: 1.65; max-width: 220px; }
 
 /* ─── TOAST ──────────────────────────────────────────────────────────────────*/
+/* Menú desplegable */
+.dropdown { display:none; position:fixed; top:52px; right:8px; background:var(--bg2); border:1px solid var(--border2); border-radius:14px; overflow:hidden; z-index:150; min-width:200px; }
+.dropdown.open { display:block; }
+.dd-item { display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer; font-size:14px; color:var(--text); transition:background .12s; border:none; background:transparent; width:100%; font-family:'Outfit',sans-serif; }
+.dd-item:active { background:var(--bg3); }
+.dd-item:not(:last-child) { border-bottom:1px solid var(--border); }
+.dd-ico { font-size:18px; flex-shrink:0; }
+.dd-sep { height:1px; background:var(--border); }
+/* Input file oculto */
+#file-input { display:none; }
 .toast { display: none; position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--accent); border-radius: 12px; padding: 10px 16px; font-size: 13px; gap: 10px; align-items: center; z-index: 200; white-space: nowrap; }
 .toast.show { display: flex; }
 .toast-btn { background: var(--accent); border: none; color: #0e0e10; border-radius: 8px; padding: 6px 12px; font-family: 'Outfit',sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; }
@@ -391,6 +403,15 @@ html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-
   </div>
 </div>
 
+<!-- Dropdown menú -->
+<div id="dropdown" onclick="if(event.target===this)closeDD()">
+  <div class="dropdown" id="dd">
+    <button class="dd-item" onclick="exportData()"><span class="dd-ico">📤</span><span>Exportar mis datos</span></button>
+    <button class="dd-item" onclick="document.getElementById('file-input').click();closeDD()"><span class="dd-ico">📥</span><span>Importar datos</span></button>
+  </div>
+</div>
+<input type="file" id="file-input" accept=".json" onchange="importData(event)">
+
 <!-- Sheets -->
 <div class="sheet-bg" id="sp" onclick="if(event.target===this)closeSheet('sp')">
   <div class="sheet"><div class="sh-handle"></div><h3>Nuevo proyecto</h3>
@@ -482,11 +503,11 @@ function go(name) {
   // Topbar
   const tb = document.getElementById('topbar');
   if (name === 'projects') {
-    tb.innerHTML = `<div class="tb-logo">SongCraft</div>`;
+    tb.innerHTML = `<div class="tb-logo">SongCraft</div><button class="tb-menu-btn" onclick="openDD()">···</button>`;
   } else if (name === 'songs') {
-    tb.innerHTML = `<button class="tb-back" onclick="go('projects')">‹ Inicio</button><div class="tb-title">${esc(cP()?.name||'')}</div><div class="tb-spacer"></div>`;
+    tb.innerHTML = `<button class="tb-back" onclick="go('projects')">‹ Inicio</button><div class="tb-title">${esc(cP()?.name||'')}</div><button class="tb-menu-btn" onclick="openDD()">···</button>`;
   } else {
-    tb.innerHTML = `<button class="tb-back" onclick="go('songs')">‹ Canciones</button><div class="tb-title">${esc(cS()?.title||'Sin título')}</div><div class="tb-spacer"></div>`;
+    tb.innerHTML = `<button class="tb-back" onclick="go('songs')">‹ Canciones</button><div class="tb-title">${esc(cS()?.title||'Sin título')}</div><button class="tb-menu-btn" onclick="openDD()">···</button>`;
   }
   save();
 }
@@ -633,6 +654,77 @@ document.addEventListener('keydown', e => {
   if (e.key==='Escape') ['sp','ss'].forEach(id=>closeSheet(id));
   if (e.key==='Enter') { if(document.getElementById('sp').classList.contains('open'))createP(); else if(document.getElementById('ss').classList.contains('open'))createS(); }
 });
+
+// ── Export / Import ───────────────────────────────────────────────────────────
+function exportData() {
+  closeDD();
+  const data = JSON.stringify(S, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `songcraft-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      // Validación básica
+      if (!imported.projects || !Array.isArray(imported.projects)) {
+        alert('Archivo inválido — no parece un backup de SongCraft.'); return;
+      }
+      // Merge: añade proyectos que no existan (por id)
+      const existingIds = new Set(S.projects.map(p=>p.id));
+      let added = 0;
+      imported.projects.forEach(p => {
+        if (!existingIds.has(p.id)) { S.projects.push(p); added++; }
+      });
+      save(); renderProjs(); go('projects');
+      // Feedback
+      const msg = added > 0
+        ? `✅ ${added} proyecto${added!==1?'s':''} importado${added!==1?'s':''} correctamente.`
+        : '⚠️ No se encontraron proyectos nuevos (ya tienes todos).';
+      showToast(msg, 3000);
+    } catch(err) {
+      alert('Error al leer el archivo. Asegúrate de que sea un backup válido de SongCraft.');
+    }
+    e.target.value = ''; // reset para poder importar el mismo archivo de nuevo
+  };
+  reader.readAsText(file);
+}
+
+// ── Dropdown ──────────────────────────────────────────────────────────────────
+function openDD() {
+  const dd = document.getElementById('dd');
+  const overlay = document.getElementById('dropdown');
+  // Posicionar bajo el botón de menú
+  const btn = document.querySelector('.tb-menu-btn');
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    dd.style.top  = (rect.bottom + 4) + 'px';
+    dd.style.right = '8px';
+    dd.style.position = 'fixed';
+  }
+  dd.classList.add('open');
+  // Cerrar al tocar fuera
+  setTimeout(() => document.addEventListener('click', closeOnOutside), 10);
+}
+function closeDD() { document.getElementById('dd').classList.remove('open'); document.removeEventListener('click', closeOnOutside); }
+function closeOnOutside(e) { if(!document.getElementById('dd').contains(e.target)) closeDD(); }
+
+// ── Toast mejorado ────────────────────────────────────────────────────────────
+function showToast(msg, duration=3000) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
 
 load();
 </script>
